@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f6f5ef">
+<meta name="description" content="以中国旅行地为灵感的专注场景。随机场景、番茄时钟、环境声与白噪声，所有资源内嵌，本地运行。">
+<title>鹈鹕慢行 · 专注</title>
+<style>
+:root{color-scheme:light;--paper:#f6f5ef;--ink:#334b43;--muted:#879088;--line:#e2e4d9;--card:#fffef9;--green:#3d6353;--pale:#e9eee4;--accent:#9dba9a;--shadow:0 18px 65px #25382b0b;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);-webkit-tap-highlight-color:transparent}button,input,select{font:inherit}button{color:inherit;cursor:pointer}button:disabled{cursor:default;opacity:.6}button,input,select{touch-action:manipulation}button{border:0}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #90ac86;outline-offset:4px}button svg{width:19px;height:19px;flex-shrink:0}button{transition:background .18s,border-color .18s,opacity .18s}svg{display:block}[hidden]{display:none!important}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.app{width:calc(100% - 72px);max-width:1280px;margin:auto;min-height:100svh;display:flex;flex-direction:column}header{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:10px;font-size:13px;letter-spacing:2px;font-weight:600}.brand svg{width:28px;height:28px}.header-actions{display:flex;align-items:center;gap:10px}.quiet-button{background:transparent;min-height:44px;border-radius:24px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:12px;padding:9px 14px}.quiet-button:hover{background:#e9ece2}.quiet-button[aria-pressed="true"]{color:var(--green)}.sound-off-line{display:none}body[data-sound="muted"] .sound-off-line,body[data-sound="off"] .sound-off-line{display:block}body[data-sound="muted"] .sound-waves,body[data-sound="off"] .sound-waves{display:none}
+main{flex:1;display:flex;flex-direction:column;justify-content:center;width:100%;align-self:center}.scene-heading{text-align:center;padding:10px 0 21px}.scene-heading h1{font-size:24px;font-weight:500;letter-spacing:3px;margin:0;line-height:1.5}.scene-region{font-size:10px;color:var(--muted);letter-spacing:3px;margin:7px 0 0}.scene{width:100%;aspect-ratio:1440 / 680;border-radius:24px;overflow:hidden;isolation:isolate;position:relative;background:#dce9e0;box-shadow:var(--shadow);border:1px solid #30493708}.scene-svg{width:100%;height:100%;display:block}.scene-svg .outline{stroke:#354a42;stroke-width:3.2;stroke-linejoin:round;stroke-linecap:round}.scene-svg .fine{fill:none;stroke-linecap:round;stroke-linejoin:round}.scene-svg .riding-layer,.scene-svg .resting-layer{transition:opacity .6s}.scene-svg .resting-layer{opacity:0;visibility:hidden}.scene-svg[data-rest="true"] .resting-layer{opacity:1;visibility:visible}.scene-svg[data-rest="true"] .riding-layer{opacity:0;visibility:hidden}.progress-track{height:3px;width:100%;background:#75876b14;position:relative;overflow:hidden;border-radius:0 0 10px 10px}.progress-fill{height:100%;width:0;background:var(--accent);transition:width .4s linear}.progress-track[data-idle="true"]{opacity:0}.timer-dock{display:flex;flex-direction:column;align-items:center;padding:22px 0 18px;min-height:164px}.timer-row{display:flex;gap:13px;align-items:center;justify-content:center}.clock{font-size:43px;font-weight:300;line-height:1.16;letter-spacing:1px;font-variant-numeric:tabular-nums;font-family:"Helvetica Neue","Segoe UI",Arial,sans-serif}.clock.words{font-size:26px;letter-spacing:3px}.phase-label{font-size:11px;color:var(--muted);letter-spacing:1px;border-left:1px solid var(--line);padding-left:13px;white-space:nowrap;min-width:51px}.timer-actions{display:flex;gap:16px;align-items:center;margin-top:15px;justify-content:center;min-height:46px;position:relative}.primary{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:45px;min-width:161px;padding:12px 24px;border-radius:28px;background:var(--green);color:#fffef2;font-size:13px;letter-spacing:1px}.primary:hover{background:#315645}.primary:active{transform:translateY(1px)}.text-button{background:transparent;color:#758477;font-size:12px;padding:11px 10px;min-height:42px}.text-button:hover{color:var(--ink);background:#e9ece255;border-radius:10px}.inline-message{min-height:17px;font-size:11px;line-height:1.6;color:var(--muted);margin:9px 0 0;text-align:center}.inline-message:empty{min-height:0;margin:0}.stop-button{position:absolute;left:calc(100% + 8px);white-space:nowrap}.note-bottom{text-align:center;font-size:10px;color:#a0a79c;padding:0 0 15px;letter-spacing:1px}.note-bottom:empty{display:none}
+/* 设置是唯一的配置入口；预览使用隔离 SVG，不更改当前计时或音频。 */
+dialog{padding:0;border:1px solid #e4e6dc;border-radius:22px;color:var(--ink);background:var(--card);box-shadow:0 28px 100px #233f3430;width:min(760px,calc(100vw - 36px));max-height:calc(100dvh - 48px);overflow:hidden}dialog::backdrop{background:#273c3540;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}.settings-layout{display:flex;flex-direction:column;max-height:calc(100dvh - 50px)}.dialog-header{padding:22px 25px 16px;display:flex;justify-content:space-between;align-items:center;gap:16px}.dialog-header h2{font-size:18px;font-weight:550;letter-spacing:2px;margin:0}.icon-button{border-radius:50%;width:40px;height:40px;display:grid;place-items:center;background:transparent}.icon-button:hover{background:var(--pale)}.tabs{display:flex;border-bottom:1px solid var(--line);padding:0 25px;gap:26px}.tab{padding:10px 0 14px;background:transparent;font-size:12px;color:var(--muted);position:relative;min-height:43px}.tab[aria-selected="true"]{color:var(--green);font-weight:600}.tab[aria-selected="true"]:after{content:"";position:absolute;left:0;bottom:-1px;width:100%;height:2px;background:var(--green)}.settings-scroll{overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;flex:1;padding:24px 25px 27px}.setting-description{font-size:11px;color:var(--muted);margin:0 0 19px;line-height:1.8}.random-card{width:100%;display:flex;align-items:center;gap:13px;padding:15px 17px;border:1px solid var(--line);border-radius:13px;text-align:left;background:#f8f9f2;margin-bottom:19px}.random-card>svg{width:28px;height:28px;color:#709076}.random-card strong{font-size:13px;font-weight:550;display:block;margin-bottom:5px}.random-card small{font-size:11px;color:var(--muted);line-height:1.7;display:block}.check-mark{margin-left:auto;display:grid;place-items:center;width:22px;height:22px;border:1px solid var(--line);border-radius:50%;font-size:12px;color:transparent;flex-shrink:0}.random-card[aria-pressed="true"]{border-color:#91ab8b;background:#eef2e8}.random-card[aria-pressed="true"] .check-mark{color:#fff;background:#7a9977;border-color:#7a9977}.scene-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.scene-card{background:transparent;border-radius:13px;border:1px solid var(--line);overflow:hidden;padding:0;text-align:left;position:relative}.scene-card:hover{border-color:#aab99e;box-shadow:0 3px 12px #3b4a3406}.scene-card[aria-pressed="true"]{border-color:#789a75;background:#f3f6ee}.thumbnail{aspect-ratio:1440 / 680;display:block;width:100%;background:#e6ecdf}.thumbnail svg{width:100%;height:100%}.card-copy{padding:12px 13px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px}.card-copy strong{font-size:12px;font-weight:500;letter-spacing:.3px}.card-copy small{font-size:10px;color:var(--muted);display:block;margin-top:5px}.card-status{font-size:10px;color:#6c8c67;white-space:nowrap}.coming-soon{display:flex;align-items:center;justify-content:center;gap:12px;border:1px dashed #dfe2d5;border-radius:13px;color:var(--muted);padding:23px 14px;margin-top:17px;font-size:11px;letter-spacing:1px}.coming-soon svg{width:26px;height:26px;opacity:.6}.context-note{font-size:11px;margin:17px 0 0;line-height:1.8;color:#8c9588}.preview-back{margin:-4px 0 14px -9px;padding:8px 9px;font-size:11px;display:flex;gap:7px;align-items:center;background:transparent;border-radius:8px;min-height:36px}.preview-back:hover{background:var(--pale)}.preview-art{aspect-ratio:1440 / 680;overflow:hidden;border-radius:15px;background:#e5eadf}.preview-art svg{display:block;width:100%;height:100%}.preview-title-row{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-top:20px}.preview-title-row h3{font-size:19px;font-weight:500;letter-spacing:1px;margin:0}.preview-detail{font-size:11px;color:var(--muted);line-height:1.8;margin:7px 0 18px}.preview-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-top:17px;border-top:1px solid var(--line)}.preview-footer p{font-size:11px;color:var(--muted);line-height:1.8;margin:0}.random-preview{height:230px;border-radius:14px;background:#eef2e8;display:flex;align-items:center;justify-content:center;gap:25px}.random-preview svg{width:54px;height:54px;color:#7f9b77}.random-preview span{font-size:20px;letter-spacing:3px}.random-preview small{display:block;color:var(--muted);font-size:11px;letter-spacing:.5px;margin-top:12px}.setting-row{display:flex;justify-content:space-between;align-items:center;gap:22px;padding:17px 0;border-bottom:1px solid #e7e9df}.setting-row:first-child{padding-top:0}.setting-row label,.setting-row .field-name{font-size:12px;line-height:1.7;display:block}.setting-row small{display:block;font-size:10px;color:var(--muted);line-height:1.7;margin-top:4px}.setting-row select{max-width:205px;background:#f6f7ef;border:1px solid var(--line);border-radius:9px;color:var(--ink);font-size:12px;padding:9px 27px 9px 11px;min-height:39px}.time-control{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.time-control input[type="number"]{width:70px;padding:9px 7px;border:1px solid var(--line);border-radius:8px;background:#f7f8f1;color:var(--ink);font-size:12px}.time-unit{font-size:10px;color:var(--muted)}input[type="checkbox"].switch{appearance:none;-webkit-appearance:none;position:relative;width:35px;height:21px;border-radius:13px;background:#d9ded2;cursor:pointer;flex-shrink:0;margin:0;transition:background .2s}input[type="checkbox"].switch:before{content:"";position:absolute;width:15px;height:15px;left:3px;top:3px;background:white;border-radius:50%;box-shadow:0 1px 3px #45593b18;transition:transform .2s}input[type="checkbox"].switch:checked{background:#7c9c77}input[type="checkbox"].switch:checked:before{transform:translateX(14px)}.volume-control{display:flex;align-items:center;gap:13px;width:205px}.volume-control input{width:100%;accent-color:#7e9f75;cursor:pointer}.volume-control output{font-size:10px;color:var(--muted);width:29px;flex-shrink:0;font-variant-numeric:tabular-nums;text-align:right}.more-options{margin-top:17px}.more-options summary{font-size:11px;color:var(--muted);padding:10px 0;cursor:pointer}.small-note{color:var(--muted);font-size:10px;line-height:1.9;margin:15px 0 0}.error-note{color:#a27252;font-size:11px;line-height:1.8;margin:12px 0 0}.history-summary{display:flex;gap:32px;margin:2px 0 25px}.history-summary strong{display:block;font-size:25px;font-weight:400;margin-bottom:7px;font-variant-numeric:tabular-nums}.history-summary span{font-size:10px;color:var(--muted)}.history-empty{padding:45px 15px;text-align:center;font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:13px}.history-list{display:flex;flex-direction:column;gap:11px}.history-item{display:flex;align-items:center;gap:13px;border:1px solid var(--line);border-radius:12px;overflow:hidden;padding:9px}.history-item .history-thumb{width:95px;aspect-ratio:1.7;flex-shrink:0;border-radius:7px;overflow:hidden}.history-thumb svg{width:100%;height:100%}.history-item strong{font-size:12px;font-weight:500;display:block}.history-item small{font-size:10px;color:var(--muted);display:block;line-height:1.8;margin-top:4px}.history-meta{margin-left:auto;min-width:60px;text-align:right;font-size:11px;color:#749070;padding-right:5px}.history-actions{display:flex;align-items:center;justify-content:flex-end;margin-top:15px;gap:8px}.history-actions button{font-size:11px}.small-dialog{width:min(430px,calc(100vw - 38px));padding:25px}.small-dialog h2{font-size:18px;font-weight:500;margin:0 0 12px}.small-dialog p{font-size:12px;color:var(--muted);line-height:1.9;margin:0}.small-dialog .dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}.small-dialog .primary{min-width:95px;font-size:12px}.storage-warning{color:#a07853}
+@media (min-width:800px){main{max-width:min(1280px,calc((100dvh - 330px) * 2.117647));min-width:680px}.timer-dock{padding-top:21px}header{max-width:1280px;width:100%;margin:auto}}
+@media (min-width:800px) and (max-height:680px){main{min-width:610px}.app{min-height:680px}}
+@media (max-width:799px){.app{width:calc(100% - 36px)}header{min-height:65px}.brand{font-size:12px;gap:7px}.header-actions{gap:1px}.quiet-button{padding:8px 10px;font-size:11px}.scene-heading{padding:14px 0 23px}.scene-heading h1{font-size:22px;letter-spacing:2px}.scene-region{font-size:9px}.scene{border-radius:18px}.timer-dock{padding:24px 0 20px;min-height:175px}.clock{font-size:43px}.stop-button{position:static}.timer-actions{gap:8px}.primary{min-width:150px}.scene-grid{gap:12px}.card-copy{padding:11px 10px}.card-copy strong{font-size:11px}.dialog-header{padding:17px 18px 12px}.tabs{padding:0 18px;gap:23px}.settings-scroll{padding:19px 18px 24px}.preview-footer{align-items:flex-start}.preview-footer .primary{min-width:125px;font-size:12px;padding:12px 16px}.preview-footer p{font-size:10px}.setting-row{gap:15px}.setting-row select,.volume-control{max-width:163px}.setting-row label{font-size:12px}.settings-layout{max-height:calc(100dvh - 32px)}dialog{max-height:calc(100dvh - 30px)}.history-summary{gap:26px}.history-item .history-thumb{width:73px}.history-item strong{font-size:11px}}
+@media(max-width:520px){main{justify-content:flex-start}.scene{aspect-ratio:840 / 680}.scene-heading{padding-top:19px}.scene-card .thumbnail{aspect-ratio:1.75}.scene-card .thumbnail svg{object-fit:cover}.preview-title-row h3{font-size:17px}.preview-detail{font-size:10px}.preview-footer{flex-direction:column;gap:13px}.preview-footer .primary{width:100%}.card-status{font-size:9px}.setting-row small{max-width:170px}.scene-grid{gap:10px}.random-card{padding:13px}.coming-soon{font-size:10px;letter-spacing:.5px}.history-summary{gap:24px}.history-summary strong{font-size:23px}.history-actions{justify-content:space-between}.random-preview{height:175px;gap:17px}.random-preview span{font-size:17px}.random-preview svg{width:41px;height:41px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body data-sound="off">
+<div class="app">
+<header>
+  <div class="brand"><svg viewBox="0 0 30 30" fill="none" aria-hidden="true"><path d="M5 21c5 2 10 1 11-4V9a4 4 0 0 1 8 0v3h-6v6c0 7-9 9-13 3Z" fill="currentColor"/><path d="m23 10 6 3h-7Z" fill="#dcaa70"/><circle cx="22" cy="8.5" r="1" fill="#f6f5ef"/></svg><span>鹈鹕慢行</span></div>
+  <div class="header-actions">
+    <button type="button" class="quiet-button" id="sound-toggle" aria-pressed="false" aria-label="开启声音"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4 5 8H2v8h3l6 4Z"/><path class="sound-waves" d="M15 8q4 4 0 8m3-11q7 7 0 14"/><path class="sound-off-line" d="m15 9 6 6m0-6-6 6"/></svg><span id="sound-label">声音</span></button>
+    <button type="button" class="quiet-button" id="open-settings" aria-haspopup="dialog" aria-controls="settings-dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 3-1 3-3 1-2 4 2 2v4l4 2 3-1 3 1 4-2v-4l2-2-2-4-3-1-1-3Z"/><circle cx="12" cy="11.5" r="3.2"/></svg><span>设置</span></button>
+  </div>
+</header>
+<main>
+  <div class="scene-heading"><h1 id="scene-title">旅行场景</h1><p id="scene-region" class="scene-region"></p></div>
+  <section class="scene" aria-label="旅行场景动画"><svg id="world" class="scene-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 680" role="img" aria-labelledby="main-art-title"></svg></section>
+  <div class="progress-track" id="progress" role="progressbar" aria-label="本轮时间进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-idle="true"><div class="progress-fill" id="progress-fill"></div></div>
+  <section class="timer-dock" aria-label="专注计时">
+    <div class="timer-row"><div class="clock" id="clock" role="timer" aria-live="off">25:00</div><span class="phase-label" id="phase-label">专注</span></div>
+    <div class="timer-actions">
+      <button type="button" id="session-main" class="primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="main-icon" d="m9 5 10 7-10 7Z"/></svg><span id="main-label">开始专注</span></button>
+      <button type="button" id="session-secondary" class="text-button stop-button" hidden>结束本轮</button>
+    </div>
+    <p class="inline-message" id="status-message" role="status" aria-live="polite" aria-atomic="true"></p>
+  </section>
+</main>
+<p class="note-bottom" id="global-warning"></p>
+<noscript>请启用 JavaScript 后使用旅行场景、声音和计时。</noscript>
+</div>
+<dialog id="settings-dialog" aria-labelledby="settings-title">
+<div class="settings-layout">
+  <div class="dialog-header"><h2 id="settings-title">设置</h2><button type="button" id="close-settings" class="icon-button" aria-label="关闭设置" autofocus><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
+  <div class="tabs" role="tablist" aria-label="设置分类">
+    <button type="button" class="tab" role="tab" aria-selected="true" aria-controls="panel-scenes" id="tab-scenes" data-tab="scenes">旅行场景</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="panel-preferences" id="tab-preferences" data-tab="preferences" tabindex="-1">偏好</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="panel-history" id="tab-history" data-tab="history" tabindex="-1">记录</button>
+  </div>
+  <div class="settings-scroll" id="settings-scroll">
+    <section id="panel-scenes" role="tabpanel" aria-labelledby="tab-scenes">
+      <div id="scene-catalog">
+        <button type="button" class="random-card" id="random-scene" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h3c5 0 7 10 12 10h3m-4-3 4 3-4 3M3 17h3c2 0 3-2 5-5m3-4c1-1 2-1 4-1h3m-4-3 4 3-4 3"/></svg><span><strong>随机场景</strong><small>新一轮随机选择，连续不重复。</small></span><span class="check-mark" aria-hidden="true">✓</span></button>
+        <div class="scene-grid" id="scene-cards" aria-label="可预览的旅行场景"></div>
+        <div class="coming-soon"><svg viewBox="0 0 32 26" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><rect x="2" y="3" width="28" height="20" rx="2"/><path d="M19 7v12M22 10h5m-5 4h5M6 17l4-5 3 3 2-2 2 4Z"/><circle cx="8" cy="9" r="1.5"/></svg><span>更多旅行场景，敬请期待</span></div>
+        <p class="context-note" id="scene-setting-note"></p>
+      </div>
+      <div id="scene-preview" hidden>
+        <button type="button" class="preview-back" id="preview-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>旅行场景</button>
+        <div class="preview-art" id="preview-art"><svg id="preview-world" class="scene-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 680" role="img" aria-label="场景预览"></svg></div>
+        <div class="random-preview" id="random-preview" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h3c5 0 7 10 12 10h3m-4-3 4 3-4 3M3 17h3c2 0 3-2 5-5m3-4c1-1 2-1 4-1h3m-4-3 4 3-4 3"/></svg><span>随机场景<small>从已上线场景中选择</small></span></div>
+        <div class="preview-title-row"><h3 id="preview-name"></h3></div><p class="preview-detail" id="preview-detail"></p>
+        <div class="preview-footer"><p id="preview-note">仅预览画面，不更改当前声音或计时。</p><button type="button" class="primary" id="apply-scene">使用此场景</button></div>
+      </div>
+    </section>
+    <section id="panel-preferences" role="tabpanel" aria-labelledby="tab-preferences" hidden>
+      <p class="setting-description" id="preference-timing-note">更改后自动保存。</p>
+      <div class="setting-row"><div><label for="focus-duration">专注时长</label><small>选择“不计时”可仅播放场景与声音。</small></div><div class="time-control"><select id="focus-duration"><option value="25">25 分钟</option><option value="50">50 分钟</option><option value="90">90 分钟</option><option value="0">不计时</option><option value="custom">自定义</option></select><input type="number" id="custom-focus" min="1" max="180" step="1" value="25" aria-label="自定义专注时长，1 到 180 分钟" hidden></div></div>
+      <div class="setting-row"><label for="break-duration">休息时长</label><div class="time-control"><select id="break-duration"><option value="5">5 分钟</option><option value="10">10 分钟</option><option value="15">15 分钟</option><option value="custom">自定义</option></select><input type="number" id="custom-break" min="1" max="60" step="1" value="5" aria-label="自定义休息时长，1 到 60 分钟" hidden></div></div>
+      <div class="setting-row"><div><label for="master-volume">声音音量</label><small>静音状态不会因切换场景而改变。</small></div><div class="volume-control"><input type="range" id="master-volume" min="0" max="100" value="38" aria-label="声音总音量"><output id="master-volume-value" for="master-volume">38%</output></div></div>
+      <div class="setting-row"><label for="sound-source">声音来源</label><select id="sound-source"><option value="scene">跟随旅行场景</option><option value="white">白噪声</option><option value="pink">粉红噪声</option><option value="brown">棕噪声</option></select></div>
+      <div class="setting-row"><div><label for="music-on">轻配乐</label><small>低音量叠加在当前声音上。</small></div><input class="switch" type="checkbox" id="music-on"></div>
+      <div class="setting-row"><label for="arrival-chime">到时轻响</label><input class="switch" type="checkbox" id="arrival-chime" checked></div>
+      <div class="setting-row"><div><label for="still-scene">静止画面</label><small>不暂停计时和声音。</small></div><input class="switch" type="checkbox" id="still-scene"></div>
+      <details class="more-options"><summary>更多偏好</summary>
+        <div class="setting-row"><label for="hide-countdown">隐藏倒计时数字</label><input class="switch" type="checkbox" id="hide-countdown"></div>
+        <div class="setting-row"><div><span class="field-name">桌面到时提醒</span><small id="notification-note">仅在主动开启后请求权限。</small></div><button type="button" class="text-button" id="notification-button">开启提醒</button></div>
+        <p class="small-note">声音在主动点击后开启，切换工作窗口时继续播放。手机锁屏、设备休眠或浏览器冻结时，声音和到时提醒可能中断。</p>
+      </details>
+      <p class="error-note" id="audio-error" hidden></p>
+    </section>
+    <section id="panel-history" role="tabpanel" aria-labelledby="tab-history" hidden>
+      <div class="history-summary"><div><strong id="today-minutes">0</strong><span>今日已记录 / 分钟</span></div><div><strong id="completed-count">0</strong><span>累计完成 / 轮</span></div></div>
+      <div class="history-empty" id="history-empty">暂无记录</div><div class="history-list" id="history-list"></div>
+      <div class="history-actions"><button type="button" class="text-button" id="export-records">导出记录</button><button type="button" class="text-button" id="clear-records">清空记录</button></div>
+      <p class="small-note" id="privacy-note">记录仅保存在当前浏览器，最多保留 500 条。此处统计计时时长，不验证实际专注程度。</p>
+    </section>
+  </div>
+</div>
+</dialog>
+<dialog class="small-dialog" id="confirm-dialog" aria-labelledby="confirm-title"><h2 id="confirm-title">清空记录？</h2><p>当前浏览器中的历史计时记录将被删除，无法撤销。正在计时的本轮不受影响。</p><div class="dialog-actions"><button type="button" class="text-button" id="cancel-clear" autofocus>取消</button><button type="button" class="primary" id="confirm-clear">清空记录</button></div></dialog>
+<script>
+(() => {
+'use strict';
+const SCENES = [{"id":"erhai","name":"洱海","mood":"午后微风","region":"云南 · 大理","detail":"苍山轮廓 · 湖面 · 白墙民居","ambience":"lake","audioLand":"mountain","weather":"clear","night":false,"accent":"#698e7b","ground":"#506d54","art":"<defs>\n    <g id=\"__P__palm\"><path d=\"M0 0q-7-95 20-192\" fill=\"none\" stroke=\"#928f65\" stroke-width=\"12\" stroke-linecap=\"round\"/><path d=\"M-1-28 9-28M0-63 13-62M6-98 17-96M12-127l12 2\" stroke=\"#c1b18a\" stroke-width=\"3\"/>\n    <path d=\"M19-186Q-47-243-99-190q60-17 117 11Q-44-217-53-145q21-36 73-37Q-7-270 41-253q-26 27-21 67Q67-265 117-216q-53-4-97 36Q97-216 126-151q-46-40-106-28Q73-185 73-121q-12-43-53-58Z\" fill=\"#658b70\"/><path d=\"M20-184q-46-38-101-12m100 14q47-39 85-33\" fill=\"none\" stroke=\"#9dab75\" stroke-width=\"3\" opacity=\".7\"/><circle cx=\"22\" cy=\"-180\" r=\"8\" fill=\"#908261\"/><circle cx=\"11\" cy=\"-178\" r=\"7\" fill=\"#b19b69\"/></g>\n    <g id=\"__P__boat\"><path d=\"M-48 0H56L33 14H-25Z\" fill=\"#7e816a\"/><path d=\"M-12-4V-75l40 69Z\" fill=\"#f5ebca\"/><path d=\"M-16-72-44-5h28Z\" fill=\"#e1d7b8\"/></g>\n    <g id=\"__P__willow\"><path d=\"M0 0q24-124-2-243\" fill=\"none\" stroke=\"#71866a\" stroke-width=\"10\" stroke-linecap=\"round\"/><path d=\"M-2-214q-36-73-101-27M-1-215q48-69 127-19M-1-202q-55-22-98 20M-4-227q-15-35-24-48\" fill=\"none\" stroke=\"#71866a\" stroke-width=\"6\"/>\n    <g fill=\"none\" stroke=\"#829d6e\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M-88-246q-20 37-13 102m26-105q-14 66 1 116m18-112q-7 62 6 79m-89-54q-10 58 6 89m165-119q15 66-5 113m25-109q13 62-2 119m18-95q17 60 3 100m16-94q20 59 9 115m13-105q23 61 16 100m-9-96q27 57 25 77\"/></g>\n    <g fill=\"#96ae7b\"><ellipse cx=\"-99\" cy=\"-208\" rx=\"6\" ry=\"15\" transform=\"rotate(15 -99 -208)\"/><ellipse cx=\"-77\" cy=\"-184\" rx=\"5\" ry=\"14\"/><ellipse cx=\"-140\" cy=\"-177\" rx=\"5\" ry=\"15\"/><ellipse cx=\"28\" cy=\"-189\" rx=\"5\" ry=\"14\"/><ellipse cx=\"53\" cy=\"-175\" rx=\"5\" ry=\"14\"/><ellipse cx=\"71\" cy=\"-159\" rx=\"5\" ry=\"14\"/><ellipse cx=\"96\" cy=\"-141\" rx=\"5\" ry=\"14\"/></g></g>\n    <g id=\"__P__pavilion\"><path d=\"M-44 0v-61M44 0v-61M-13 0v-61M13 0v-61\" stroke=\"#765f4c\" stroke-width=\"6\"/><path d=\"M-57-55H57L73-65Q27-66 0-98q-27 32-73 33Z\" fill=\"#60776b\"/><path d=\"M-54-64Q-24-68 0-90q24 22 54 26\" fill=\"none\" stroke=\"#98a388\" stroke-width=\"3\"/><path d=\"M-62 0H62v8H-62Z\" fill=\"#ada987\"/><path d=\"M-44-17H44\" stroke=\"#8e7a58\" stroke-width=\"4\"/></g>\n    <g id=\"__P__bamboo\" fill=\"none\" stroke=\"#577e65\" stroke-linecap=\"round\"><path d=\"M0 0 6-176M14 0 31-211M-8-5-31-157\" stroke-width=\"6\"/><path d=\"M2-47H10M4-88H12M5-129H13M22-79H30M27-135H35M-25-102l8-2\" stroke=\"#a4b294\" stroke-width=\"3\"/><path d=\"M9-129q-26-50-64-41m76 87q42-32 60-18m-88-11q-41-39-65-25M29-181q29-32 56-23\" stroke-width=\"2\"/><g fill=\"#658e6e\" stroke=\"none\"><path d=\"M-18-152q-16-49-29-37 5 20 29 37M-29-161q-45-7-39 11 17 6 39-11M-5-136q-33-9-25 15 16-1 25-15M39-184q4-47 18-39 4 16-18 39M54-195q47-9 42 9-20 11-42-9M50-93q26-43 36-25-5 20-36 25M44-88q39-3 34 13-16 7-34-13M-36-122q-24-39-33-20 8 17 33 20M-40-125q-36 5-26 19 17 4 26-19\"/></g></g>\n    </defs><defs><linearGradient id=\"__P__sky\" x2=\"0\" y2=\"1\"><stop stop-color=\"#dce9e0\"/><stop offset=\"1\" stop-color=\"#f4f0d9\"/></linearGradient><linearGradient id=\"__P__water\" x2=\"0\" y2=\"1\"><stop stop-color=\"#aacbbd\"/><stop offset=\"1\" stop-color=\"#d3dfc2\"/></linearGradient></defs><rect width=\"1440\" height=\"680\" fill=\"url(#__P__sky)\"/><circle cx=\"1112\" cy=\"130\" r=\"49\" fill=\"#efd69b\" opacity=\".84\"/><g fill=\"#fffef0\" opacity=\".46\" data-float=\"1\"><path d=\"M155 133c12-29 41-20 46-8 17-21 41-9 42 9h36c12 0 12 12 0 12H138q-13-8 17-13Z\"/><path d=\"M750 98c11-21 38-14 43-2 15-14 36-5 37 9h40q12 8-3 12H727q-10-8 23-19Z\"/><path d=\"M1137 248c9-18 34-18 43 0h55q13 8-2 12h-120q-14-12 24-12Z\"/></g><defs><g id=\"__P__far\"><path d=\"M0 351 74 312 136 332 225 268 276 282 344 203 404 242 454 196 507 225 580 153 658 224 694 213 775 287 814 270 897 318 982 281 1054 323 1167 273 1236 311 1345 282 1450 327 1550 311 1641 350 1720 351V420H0Z\" fill=\"#a8beb4\"/><path d=\"m531 194 49-41 42 41-31-9-14 14-15-18Z\" fill=\"#e8eee0\" opacity=\".8\"/><path d=\"M0 380 88 346 207 373 343 277 440 330 564 253 686 327 741 314 852 370 940 345 1041 372 1190 329 1300 369 1394 350 1521 373 1600 350 1720 380V426H0Z\" fill=\"#92afa2\"/><path d=\"M0 404Q139 380 281 410T600 407T962 410T1310 411T1720 404V432H0Z\" fill=\"#819f90\"/></g></defs><g data-pan=\"0.045\" data-period=\"1720\"><use href=\"#__P__far\"/><use href=\"#__P__far\" x=\"1720\"/></g><path d=\"M0 410H1440V554H0Z\" fill=\"url(#__P__water)\"/><defs><g id=\"__P__mid\"><path d=\"M0 430q130-16 253-3t166 5v16H0Z\" fill=\"#c9ceb0\"/><g transform=\"translate(30 429) scale(0.62)\"><path d=\"M0 0h70v-51H0Z\" fill=\"#f1eddc\"/><path d=\"M-8-52h88L62-68H11Z\" fill=\"#70877f\"/><path d=\"M-8-51h88\" stroke=\"#536e66\" stroke-width=\"3\"/><path d=\"M31 0v-24h16V0M10-36h12v14H10m43-14h9v14h-9\" fill=\"#9caf9c\"/><path d=\"M-4 0h80\" stroke=\"#d5d4bb\" stroke-width=\"3\"/></g><g transform=\"translate(80 433) scale(0.79)\"><path d=\"M0 0h70v-51H0Z\" fill=\"#f1eddc\"/><path d=\"M-8-52h88L62-68H11Z\" fill=\"#70877f\"/><path d=\"M-8-51h88\" stroke=\"#536e66\" stroke-width=\"3\"/><path d=\"M31 0v-24h16V0M10-36h12v14H10m43-14h9v14h-9\" fill=\"#9caf9c\"/><path d=\"M-4 0h80\" stroke=\"#d5d4bb\" stroke-width=\"3\"/></g><g transform=\"translate(140 431) scale(0.65)\"><path d=\"M0 0h70v-51H0Z\" fill=\"#f1eddc\"/><path d=\"M-8-52h88L62-68H11Z\" fill=\"#70877f\"/><path d=\"M-8-51h88\" stroke=\"#536e66\" stroke-width=\"3\"/><path d=\"M31 0v-24h16V0M10-36h12v14H10m43-14h9v14h-9\" fill=\"#9caf9c\"/><path d=\"M-4 0h80\" stroke=\"#d5d4bb\" stroke-width=\"3\"/></g><g transform=\"translate(207 431) scale(0.91)\"><path d=\"M0 0h70v-51H0Z\" fill=\"#f1eddc\"/><path d=\"M-8-52h88L62-68H11Z\" fill=\"#70877f\"/><path d=\"M-8-51h88\" stroke=\"#536e66\" stroke-width=\"3\"/><path d=\"M31 0v-24h16V0M10-36h12v14H10m43-14h9v14h-9\" fill=\"#9caf9c\"/><path d=\"M-4 0h80\" stroke=\"#d5d4bb\" stroke-width=\"3\"/></g><g transform=\"translate(275 429) scale(0.7)\"><path d=\"M0 0h70v-51H0Z\" fill=\"#f1eddc\"/><path d=\"M-8-52h88L62-68H11Z\" fill=\"#70877f\"/><path d=\"M-8-51h88\" stroke=\"#536e66\" stroke-width=\"3\"/><path d=\"M31 0v-24h16V0M10-36h12v14H10m43-14h9v14h-9\" fill=\"#9caf9c\"/><path d=\"M-4 0h80\" stroke=\"#d5d4bb\" stroke-width=\"3\"/></g><g transform=\"translate(327 430) scale(0.63)\"><path d=\"M0 0h70v-51H0Z\" fill=\"#f1eddc\"/><path d=\"M-8-52h88L62-68H11Z\" fill=\"#70877f\"/><path d=\"M-8-51h88\" stroke=\"#536e66\" stroke-width=\"3\"/><path d=\"M31 0v-24h16V0M10-36h12v14H10m43-14h9v14h-9\" fill=\"#9caf9c\"/><path d=\"M-4 0h80\" stroke=\"#d5d4bb\" stroke-width=\"3\"/></g><use href=\"#__P__boat\" transform=\"translate(1052 468) scale(0.6)\" /><g fill=\"none\" stroke=\"#f6f1d9\" stroke-width=\"2\" opacity=\".33\" stroke-linecap=\"round\"><path d=\"M259 515h70\"/><path d=\"M914 462h50\"/><path d=\"M849 497h61\"/><path d=\"M1593 429h42\"/><path d=\"M950 536h16\"/><path d=\"M1122 403h28\"/><path d=\"M302 457h72\"/><path d=\"M1349 499h84\"/><path d=\"M1202 419h60\"/><path d=\"M265 554h72\"/><path d=\"M171 490h39\"/><path d=\"M1610 454h87\"/><path d=\"M1142 405h74\"/><path d=\"M318 555h52\"/><path d=\"M531 438h23\"/><path d=\"M1402 482h56\"/><path d=\"M1101 474h54\"/><path d=\"M310 485h73\"/><path d=\"M139 513h20\"/><path d=\"M1679 451h67\"/><path d=\"M258 527h27\"/><path d=\"M761 512h77\"/><path d=\"M242 513h43\"/><path d=\"M1164 545h47\"/><path d=\"M412 407h29\"/><path d=\"M182 461h25\"/><path d=\"M29 491h66\"/><path d=\"M1475 449h85\"/><path d=\"M950 549h61\"/><path d=\"M713 510h68\"/><path d=\"M75 446h57\"/><path d=\"M987 506h26\"/><path d=\"M1169 506h78\"/><path d=\"M156 426h78\"/><path d=\"M508 454h54\"/><path d=\"M1246 554h62\"/><path d=\"M1218 462h15\"/><path d=\"M341 410h54\"/><path d=\"M1076 411h64\"/><path d=\"M1166 541h88\"/><path d=\"M1249 483h51\"/><path d=\"M1227 472h67\"/><path d=\"M1289 491h15\"/><path d=\"M1098 520h77\"/><path d=\"M1346 452h66\"/><path d=\"M971 499h34\"/><path d=\"M747 511h53\"/><path d=\"M780 524h77\"/><path d=\"M222 434h25\"/><path d=\"M1091 409h73\"/></g></g></defs><g data-pan=\"0.13\" data-period=\"1720\"><use href=\"#__P__mid\"/><use href=\"#__P__mid\" x=\"1720\"/></g><defs><g id=\"__P__near\"><path d=\"M0 544q113-22 256-8t180 10M1270 542q174-17 450 2\" fill=\"none\" stroke=\"#9dae8a\" stroke-width=\"6\"/><g stroke=\"#eee9d5\" stroke-width=\"8\" stroke-linecap=\"round\"><path d=\"M1100 548v-38m85 38v-38m85 38v-38m85 38v-38m85 38v-38m85 38v-38\"/><path d=\"M1080 520h493\" stroke-width=\"6\"/></g><use href=\"#__P__willow\" transform=\"translate(94 550) scale(0.86)\" /></g></defs><g data-pan=\"0.26\" data-period=\"1720\"><use href=\"#__P__near\"/><use href=\"#__P__near\" x=\"1720\"/></g><path d=\"M0 539Q350 548 720 538t720 3V680H0Z\" fill=\"#e8dfc2\"/><path d=\"M0 563H1440V680H0Z\" fill=\"#d7cbb1\"/><path d=\"M0 565H1440\" stroke=\"#e8dfc2\" stroke-width=\"5\"/><path data-road=\"1\" d=\"M-160 651H1600\" stroke=\"#d9caae\" stroke-width=\"3\" stroke-dasharray=\"66 119\" opacity=\".64\"/>"},{"id":"sanya","name":"三亚","mood":"落日海岸","region":"海南 · 三亚","detail":"椰林 · 海湾 · 夕照","ambience":"coast","audioLand":"coast","weather":"clear","night":false,"accent":"#b38553","ground":"#5e7759","art":"<defs>\n    <g id=\"__P__palm\"><path d=\"M0 0q-7-95 20-192\" fill=\"none\" stroke=\"#928f65\" stroke-width=\"12\" stroke-linecap=\"round\"/><path d=\"M-1-28 9-28M0-63 13-62M6-98 17-96M12-127l12 2\" stroke=\"#c1b18a\" stroke-width=\"3\"/>\n    <path d=\"M19-186Q-47-243-99-190q60-17 117 11Q-44-217-53-145q21-36 73-37Q-7-270 41-253q-26 27-21 67Q67-265 117-216q-53-4-97 36Q97-216 126-151q-46-40-106-28Q73-185 73-121q-12-43-53-58Z\" fill=\"#658b70\"/><path d=\"M20-184q-46-38-101-12m100 14q47-39 85-33\" fill=\"none\" stroke=\"#9dab75\" stroke-width=\"3\" opacity=\".7\"/><circle cx=\"22\" cy=\"-180\" r=\"8\" fill=\"#908261\"/><circle cx=\"11\" cy=\"-178\" r=\"7\" fill=\"#b19b69\"/></g>\n    <g id=\"__P__boat\"><path d=\"M-48 0H56L33 14H-25Z\" fill=\"#7e816a\"/><path d=\"M-12-4V-75l40 69Z\" fill=\"#f5ebca\"/><path d=\"M-16-72-44-5h28Z\" fill=\"#e1d7b8\"/></g>\n    <g id=\"__P__willow\"><path d=\"M0 0q24-124-2-243\" fill=\"none\" stroke=\"#71866a\" stroke-width=\"10\" stroke-linecap=\"round\"/><path d=\"M-2-214q-36-73-101-27M-1-215q48-69 127-19M-1-202q-55-22-98 20M-4-227q-15-35-24-48\" fill=\"none\" stroke=\"#71866a\" stroke-width=\"6\"/>\n    <g fill=\"none\" stroke=\"#829d6e\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M-88-246q-20 37-13 102m26-105q-14 66 1 116m18-112q-7 62 6 79m-89-54q-10 58 6 89m165-119q15 66-5 113m25-109q13 62-2 119m18-95q17 60 3 100m16-94q20 59 9 115m13-105q23 61 16 100m-9-96q27 57 25 77\"/></g>\n    <g fill=\"#96ae7b\"><ellipse cx=\"-99\" cy=\"-208\" rx=\"6\" ry=\"15\" transform=\"rotate(15 -99 -208)\"/><ellipse cx=\"-77\" cy=\"-184\" rx=\"5\" ry=\"14\"/><ellipse cx=\"-140\" cy=\"-177\" rx=\"5\" ry=\"15\"/><ellipse cx=\"28\" cy=\"-189\" rx=\"5\" ry=\"14\"/><ellipse cx=\"53\" cy=\"-175\" rx=\"5\" ry=\"14\"/><ellipse cx=\"71\" cy=\"-159\" rx=\"5\" ry=\"14\"/><ellipse cx=\"96\" cy=\"-141\" rx=\"5\" ry=\"14\"/></g></g>\n    <g id=\"__P__pavilion\"><path d=\"M-44 0v-61M44 0v-61M-13 0v-61M13 0v-61\" stroke=\"#765f4c\" stroke-width=\"6\"/><path d=\"M-57-55H57L73-65Q27-66 0-98q-27 32-73 33Z\" fill=\"#60776b\"/><path d=\"M-54-64Q-24-68 0-90q24 22 54 26\" fill=\"none\" stroke=\"#98a388\" stroke-width=\"3\"/><path d=\"M-62 0H62v8H-62Z\" fill=\"#ada987\"/><path d=\"M-44-17H44\" stroke=\"#8e7a58\" stroke-width=\"4\"/></g>\n    <g id=\"__P__bamboo\" fill=\"none\" stroke=\"#577e65\" stroke-linecap=\"round\"><path d=\"M0 0 6-176M14 0 31-211M-8-5-31-157\" stroke-width=\"6\"/><path d=\"M2-47H10M4-88H12M5-129H13M22-79H30M27-135H35M-25-102l8-2\" stroke=\"#a4b294\" stroke-width=\"3\"/><path d=\"M9-129q-26-50-64-41m76 87q42-32 60-18m-88-11q-41-39-65-25M29-181q29-32 56-23\" stroke-width=\"2\"/><g fill=\"#658e6e\" stroke=\"none\"><path d=\"M-18-152q-16-49-29-37 5 20 29 37M-29-161q-45-7-39 11 17 6 39-11M-5-136q-33-9-25 15 16-1 25-15M39-184q4-47 18-39 4 16-18 39M54-195q47-9 42 9-20 11-42-9M50-93q26-43 36-25-5 20-36 25M44-88q39-3 34 13-16 7-34-13M-36-122q-24-39-33-20 8 17 33 20M-40-125q-36 5-26 19 17 4 26-19\"/></g></g>\n    </defs><defs><linearGradient id=\"__P__sky\" x2=\"0\" y2=\"1\"><stop stop-color=\"#e8d8c2\"/><stop offset=\"1\" stop-color=\"#f7dcad\"/></linearGradient><linearGradient id=\"__P__water\" x2=\"0\" y2=\"1\"><stop stop-color=\"#88b5a7\"/><stop offset=\"1\" stop-color=\"#c4d6b6\"/></linearGradient></defs><rect width=\"1440\" height=\"680\" fill=\"url(#__P__sky)\"/><circle cx=\"1072\" cy=\"224\" r=\"68\" fill=\"#f2bf7a\"/><circle cx=\"1072\" cy=\"224\" r=\"98\" fill=\"#f4cc8e\" opacity=\".15\"/><g fill=\"#fcf1d9\" opacity=\".46\" data-float=\"1\"><path d=\"M155 133c12-29 41-20 46-8 17-21 41-9 42 9h36c12 0 12 12 0 12H138q-13-8 17-13Z\"/><path d=\"M750 98c11-21 38-14 43-2 15-14 36-5 37 9h40q12 8-3 12H727q-10-8 23-19Z\"/><path d=\"M1137 248c9-18 34-18 43 0h55q13 8-2 12h-120q-14-12 24-12Z\"/></g><defs><g id=\"__P__far\"><path d=\"M0 362q180 2 251-43 91-58 180-20t125 67q62-9 84-36 20-31 63-12t65 46q97-10 172-62t204-5q48-9 79-31t91 15q128 70 211 64 106-9 195 17V407H0Z\" fill=\"#a9bbae\"/><path d=\"M0 385q202 6 260-15t106 8 156-6q226 24 393-5t255 8 350 10v33H0Z\" fill=\"#82a99d\"/></g></defs><g data-pan=\"0.035\" data-period=\"1720\"><use href=\"#__P__far\"/><use href=\"#__P__far\" x=\"1720\"/></g><path d=\"M0 388H1440V548H0Z\" fill=\"url(#__P__water)\"/><defs><g id=\"__P__mid\"><g fill=\"none\" stroke=\"#fff0cb\" stroke-width=\"2\" opacity=\".33\" stroke-linecap=\"round\"><path d=\"M695 488h47\"/><path d=\"M1178 485h80\"/><path d=\"M358 483h46\"/><path d=\"M1075 503h65\"/><path d=\"M94 538h66\"/><path d=\"M945 478h71\"/><path d=\"M839 492h19\"/><path d=\"M1466 514h54\"/><path d=\"M0 466h61\"/><path d=\"M749 463h27\"/><path d=\"M645 501h41\"/><path d=\"M1093 458h68\"/><path d=\"M605 458h88\"/><path d=\"M22 444h90\"/><path d=\"M1539 397h19\"/><path d=\"M1456 543h50\"/><path d=\"M157 533h43\"/><path d=\"M1060 403h54\"/><path d=\"M986 447h19\"/><path d=\"M1045 524h72\"/><path d=\"M498 458h57\"/><path d=\"M1645 498h60\"/><path d=\"M1173 439h75\"/><path d=\"M1289 458h56\"/><path d=\"M1112 426h85\"/><path d=\"M642 543h44\"/><path d=\"M1363 391h56\"/><path d=\"M898 457h66\"/><path d=\"M1669 396h76\"/><path d=\"M1307 428h26\"/><path d=\"M209 461h34\"/><path d=\"M1241 544h17\"/><path d=\"M111 471h14\"/><path d=\"M726 467h43\"/><path d=\"M881 523h46\"/><path d=\"M540 447h73\"/><path d=\"M282 412h51\"/><path d=\"M679 513h21\"/><path d=\"M795 481h19\"/><path d=\"M1000 391h39\"/><path d=\"M843 502h50\"/><path d=\"M868 516h77\"/><path d=\"M1094 536h21\"/><path d=\"M219 416h51\"/><path d=\"M738 462h45\"/><path d=\"M5 529h39\"/><path d=\"M241 511h90\"/><path d=\"M331 489h53\"/><path d=\"M617 505h14\"/><path d=\"M260 457h56\"/></g><use href=\"#__P__boat\" transform=\"translate(1090 462) scale(0.72)\" /><path d=\"M0 508q233-39 440 1t487-4 793-2v53H0Z\" fill=\"#ebd5ab\"/><path d=\"M0 500q252-37 440 2t487-4 793-2\" fill=\"none\" stroke=\"#f9edca\" stroke-width=\"5\" opacity=\".82\"/></g></defs><g data-pan=\"0.1\" data-period=\"1720\"><use href=\"#__P__mid\"/><use href=\"#__P__mid\" x=\"1720\"/></g><defs><g id=\"__P__near\"><use href=\"#__P__palm\" transform=\"translate(160 555) scale(1.2)\" /><use href=\"#__P__palm\" transform=\"translate(305 548) scale(0.75)\" /><use href=\"#__P__palm\" transform=\"translate(1367 550) scale(1.02)\" /><use href=\"#__P__palm\" transform=\"translate(967 544) scale(0.57)\" /><g transform=\"translate(1155 512)\"><path d=\"M0 29v-75\" stroke=\"#9e8d69\" stroke-width=\"4\"/><path d=\"M-59-17q12-35 59-39 48 4 59 39Z\" fill=\"#dfb17e\"/><path d=\"M-25-17q3-32 25-39 22 9 25 39Z\" fill=\"#fbebc8\"/><path d=\"M-48 29h75l13-25m-52 25 6 17m-32-17-7 17\" fill=\"none\" stroke=\"#9c9171\" stroke-width=\"4\"/></g></g></defs><g data-pan=\"0.26\" data-period=\"1720\"><use href=\"#__P__near\"/><use href=\"#__P__near\" x=\"1720\"/></g><path d=\"M0 539Q350 548 720 538t720 3V680H0Z\" fill=\"#efdab3\"/><path d=\"M0 563H1440V680H0Z\" fill=\"#d6c19d\"/><path d=\"M0 565H1440\" stroke=\"#efdab3\" stroke-width=\"5\"/><path data-road=\"1\" d=\"M-160 651H1600\" stroke=\"#d9caae\" stroke-width=\"3\" stroke-dasharray=\"66 119\" opacity=\".64\"/>"},{"id":"dunhuang","name":"敦煌","mood":"大漠星空","region":"甘肃 · 敦煌","detail":"沙丘 · 月牙泉意象 · 星空","ambience":"wind","audioLand":"mountain","weather":"fog","night":true,"accent":"#b18e66","ground":"#615b58","art":"<defs>\n    <g id=\"__P__palm\"><path d=\"M0 0q-7-95 20-192\" fill=\"none\" stroke=\"#928f65\" stroke-width=\"12\" stroke-linecap=\"round\"/><path d=\"M-1-28 9-28M0-63 13-62M6-98 17-96M12-127l12 2\" stroke=\"#c1b18a\" stroke-width=\"3\"/>\n    <path d=\"M19-186Q-47-243-99-190q60-17 117 11Q-44-217-53-145q21-36 73-37Q-7-270 41-253q-26 27-21 67Q67-265 117-216q-53-4-97 36Q97-216 126-151q-46-40-106-28Q73-185 73-121q-12-43-53-58Z\" fill=\"#658b70\"/><path d=\"M20-184q-46-38-101-12m100 14q47-39 85-33\" fill=\"none\" stroke=\"#9dab75\" stroke-width=\"3\" opacity=\".7\"/><circle cx=\"22\" cy=\"-180\" r=\"8\" fill=\"#908261\"/><circle cx=\"11\" cy=\"-178\" r=\"7\" fill=\"#b19b69\"/></g>\n    <g id=\"__P__boat\"><path d=\"M-48 0H56L33 14H-25Z\" fill=\"#7e816a\"/><path d=\"M-12-4V-75l40 69Z\" fill=\"#f5ebca\"/><path d=\"M-16-72-44-5h28Z\" fill=\"#e1d7b8\"/></g>\n    <g id=\"__P__willow\"><path d=\"M0 0q24-124-2-243\" fill=\"none\" stroke=\"#71866a\" stroke-width=\"10\" stroke-linecap=\"round\"/><path d=\"M-2-214q-36-73-101-27M-1-215q48-69 127-19M-1-202q-55-22-98 20M-4-227q-15-35-24-48\" fill=\"none\" stroke=\"#71866a\" stroke-width=\"6\"/>\n    <g fill=\"none\" stroke=\"#829d6e\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M-88-246q-20 37-13 102m26-105q-14 66 1 116m18-112q-7 62 6 79m-89-54q-10 58 6 89m165-119q15 66-5 113m25-109q13 62-2 119m18-95q17 60 3 100m16-94q20 59 9 115m13-105q23 61 16 100m-9-96q27 57 25 77\"/></g>\n    <g fill=\"#96ae7b\"><ellipse cx=\"-99\" cy=\"-208\" rx=\"6\" ry=\"15\" transform=\"rotate(15 -99 -208)\"/><ellipse cx=\"-77\" cy=\"-184\" rx=\"5\" ry=\"14\"/><ellipse cx=\"-140\" cy=\"-177\" rx=\"5\" ry=\"15\"/><ellipse cx=\"28\" cy=\"-189\" rx=\"5\" ry=\"14\"/><ellipse cx=\"53\" cy=\"-175\" rx=\"5\" ry=\"14\"/><ellipse cx=\"71\" cy=\"-159\" rx=\"5\" ry=\"14\"/><ellipse cx=\"96\" cy=\"-141\" rx=\"5\" ry=\"14\"/></g></g>\n    <g id=\"__P__pavilion\"><path d=\"M-44 0v-61M44 0v-61M-13 0v-61M13 0v-61\" stroke=\"#765f4c\" stroke-width=\"6\"/><path d=\"M-57-55H57L73-65Q27-66 0-98q-27 32-73 33Z\" fill=\"#60776b\"/><path d=\"M-54-64Q-24-68 0-90q24 22 54 26\" fill=\"none\" stroke=\"#98a388\" stroke-width=\"3\"/><path d=\"M-62 0H62v8H-62Z\" fill=\"#ada987\"/><path d=\"M-44-17H44\" stroke=\"#8e7a58\" stroke-width=\"4\"/></g>\n    <g id=\"__P__bamboo\" fill=\"none\" stroke=\"#577e65\" stroke-linecap=\"round\"><path d=\"M0 0 6-176M14 0 31-211M-8-5-31-157\" stroke-width=\"6\"/><path d=\"M2-47H10M4-88H12M5-129H13M22-79H30M27-135H35M-25-102l8-2\" stroke=\"#a4b294\" stroke-width=\"3\"/><path d=\"M9-129q-26-50-64-41m76 87q42-32 60-18m-88-11q-41-39-65-25M29-181q29-32 56-23\" stroke-width=\"2\"/><g fill=\"#658e6e\" stroke=\"none\"><path d=\"M-18-152q-16-49-29-37 5 20 29 37M-29-161q-45-7-39 11 17 6 39-11M-5-136q-33-9-25 15 16-1 25-15M39-184q4-47 18-39 4 16-18 39M54-195q47-9 42 9-20 11-42-9M50-93q26-43 36-25-5 20-36 25M44-88q39-3 34 13-16 7-34-13M-36-122q-24-39-33-20 8 17 33 20M-40-125q-36 5-26 19 17 4 26-19\"/></g></g>\n    </defs><defs><linearGradient id=\"__P__sky\" x2=\"0\" y2=\"1\"><stop stop-color=\"#263848\"/><stop offset=\"1\" stop-color=\"#8d8183\"/></linearGradient></defs><rect width=\"1440\" height=\"680\" fill=\"url(#__P__sky)\"/><circle cx=\"486\" cy=\"144\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.53\"/><circle cx=\"469\" cy=\"28\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.50\"/><circle cx=\"256\" cy=\"187\" r=\"1.6\" fill=\"#f4ead1\" opacity=\"0.78\"/><circle cx=\"1014\" cy=\"163\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.62\"/><circle cx=\"99\" cy=\"73\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.35\"/><circle cx=\"261\" cy=\"91\" r=\"1.6\" fill=\"#f4ead1\" opacity=\"0.41\"/><circle cx=\"333\" cy=\"133\" r=\"2\" fill=\"#f4ead1\" opacity=\"0.42\"/><circle cx=\"865\" cy=\"77\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.47\"/><circle cx=\"679\" cy=\"45\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.71\"/><circle cx=\"453\" cy=\"197\" r=\"2\" fill=\"#f4ead1\" opacity=\"0.33\"/><circle cx=\"61\" cy=\"172\" r=\"1.6\" fill=\"#f4ead1\" opacity=\"0.68\"/><circle cx=\"641\" cy=\"198\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.49\"/><circle cx=\"662\" cy=\"59\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.68\"/><circle cx=\"339\" cy=\"234\" r=\"1.6\" fill=\"#f4ead1\" opacity=\"0.57\"/><circle cx=\"1144\" cy=\"71\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.59\"/><circle cx=\"774\" cy=\"88\" r=\"1.6\" fill=\"#f4ead1\" opacity=\"0.78\"/><circle cx=\"382\" cy=\"229\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.58\"/><circle cx=\"335\" cy=\"72\" r=\"1.6\" fill=\"#f4ead1\" opacity=\"0.48\"/><circle cx=\"842\" cy=\"98\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.61\"/><circle cx=\"465\" cy=\"164\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.56\"/><circle cx=\"461\" cy=\"48\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.54\"/><circle cx=\"189\" cy=\"123\" r=\"2\" fill=\"#f4ead1\" opacity=\"0.37\"/><circle cx=\"1146\" cy=\"92\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.56\"/><circle cx=\"251\" cy=\"25\" r=\"2\" fill=\"#f4ead1\" opacity=\"0.55\"/><circle cx=\"155\" cy=\"59\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.62\"/><circle cx=\"283\" cy=\"142\" r=\"1.6\" fill=\"#f4ead1\" opacity=\"0.74\"/><circle cx=\"1287\" cy=\"219\" r=\"2\" fill=\"#f4ead1\" opacity=\"0.60\"/><circle cx=\"466\" cy=\"194\" r=\"2\" fill=\"#f4ead1\" opacity=\"0.52\"/><circle cx=\"849\" cy=\"171\" r=\"2\" fill=\"#f4ead1\" opacity=\"0.35\"/><circle cx=\"972\" cy=\"107\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.36\"/><circle cx=\"761\" cy=\"185\" r=\"2\" fill=\"#f4ead1\" opacity=\"0.43\"/><circle cx=\"875\" cy=\"214\" r=\"1.6\" fill=\"#f4ead1\" opacity=\"0.33\"/><circle cx=\"892\" cy=\"147\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.64\"/><circle cx=\"158\" cy=\"70\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.79\"/><circle cx=\"1012\" cy=\"137\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.38\"/><circle cx=\"940\" cy=\"142\" r=\"2\" fill=\"#f4ead1\" opacity=\"0.31\"/><circle cx=\"181\" cy=\"53\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.64\"/><circle cx=\"167\" cy=\"148\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.80\"/><circle cx=\"1094\" cy=\"190\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.43\"/><circle cx=\"357\" cy=\"185\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.51\"/><circle cx=\"1043\" cy=\"94\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.56\"/><circle cx=\"437\" cy=\"84\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.54\"/><circle cx=\"614\" cy=\"97\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.61\"/><circle cx=\"493\" cy=\"111\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.62\"/><circle cx=\"1289\" cy=\"218\" r=\"1.6\" fill=\"#f4ead1\" opacity=\"0.50\"/><circle cx=\"1152\" cy=\"87\" r=\"1.6\" fill=\"#f4ead1\" opacity=\"0.36\"/><circle cx=\"1067\" cy=\"69\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.49\"/><circle cx=\"929\" cy=\"110\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.32\"/><circle cx=\"1170\" cy=\"141\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.51\"/><circle cx=\"885\" cy=\"21\" r=\"1.6\" fill=\"#f4ead1\" opacity=\"0.43\"/><circle cx=\"441\" cy=\"172\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.34\"/><circle cx=\"513\" cy=\"82\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.43\"/><circle cx=\"1238\" cy=\"155\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.76\"/><circle cx=\"604\" cy=\"150\" r=\"2\" fill=\"#f4ead1\" opacity=\"0.62\"/><circle cx=\"643\" cy=\"168\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.49\"/><circle cx=\"1220\" cy=\"60\" r=\"1.6\" fill=\"#f4ead1\" opacity=\"0.55\"/><circle cx=\"1139\" cy=\"53\" r=\"2\" fill=\"#f4ead1\" opacity=\"0.61\"/><circle cx=\"1304\" cy=\"173\" r=\"1.2\" fill=\"#f4ead1\" opacity=\"0.53\"/><circle cx=\"366\" cy=\"203\" r=\"2\" fill=\"#f4ead1\" opacity=\"0.65\"/><circle cx=\"62\" cy=\"56\" r=\"1\" fill=\"#f4ead1\" opacity=\"0.45\"/><circle cx=\"397\" cy=\"90\" r=\"2\" fill=\"#f4ead1\" opacity=\"0.42\"/><path d=\"M1089 94a34 34 0 1 1-39 43 33 33 0 0 0 39-43Z\" fill=\"#e5dfc3\"/><defs><g id=\"__P__far\"><path d=\"M0 420C163 407 253 230 489 286S704 381 838 337 1030 235 1187 291 1478 409 1583 360 1634 409 1720 420V547H0Z\" fill=\"#927b74\"/><path d=\"M0 464C159 448 286 345 448 371S658 479 866 424 1172 282 1368 354 1544 459 1720 464V554H0Z\" fill=\"#b5967f\"/><path d=\"M1023 381q150-133 345-27-169-65-230 1-56 13-115 26Z\" fill=\"#d1ac87\" opacity=\".68\"/></g></defs><g data-pan=\"0.025\" data-period=\"1720\"><use href=\"#__P__far\"/><use href=\"#__P__far\" x=\"1720\"/></g><defs><g id=\"__P__mid\"><path d=\"M0 505C253 455 366 436 524 476s266 72 448 24 229-97 387-79 208 64 361 84v51H0Z\" fill=\"#c6a47f\"/><path d=\"M789 481q112-63 241-24-102-7-163 39 118 2 184-28-72 64-174 54-64-5-88-41Z\" fill=\"#557978\"/><path d=\"M803 484q63 27 154 7\" fill=\"none\" stroke=\"#a7b6a1\" stroke-width=\"3\" opacity=\".6\"/><use href=\"#__P__pavilion\" transform=\"translate(1121 466) scale(0.68)\" /><g transform=\"translate(146 481) scale(0.75)\" fill=\"#6b6060\"><path d=\"M-31-13q1-22 17-18 10-20 23 2l15-2 6-24 8-3 6 9-5 8-5 24-17 9-3 25h-5l-2-26-20 1-7 25h-5l1-28Z\"/><path d=\"M-32-16q-10 4-11-5\" fill=\"none\" stroke=\"#6b6060\" stroke-width=\"3\"/><path d=\"M-13-27q4-16 7-14l3 12\"/></g><g transform=\"translate(205 481) scale(0.64)\" fill=\"#6b6060\"><path d=\"M-31-13q1-22 17-18 10-20 23 2l15-2 6-24 8-3 6 9-5 8-5 24-17 9-3 25h-5l-2-26-20 1-7 25h-5l1-28Z\"/><path d=\"M-32-16q-10 4-11-5\" fill=\"none\" stroke=\"#6b6060\" stroke-width=\"3\"/><path d=\"M-13-27q4-16 7-14l3 12\"/></g><g transform=\"translate(253 481) scale(0.53)\" fill=\"#6b6060\"><path d=\"M-31-13q1-22 17-18 10-20 23 2l15-2 6-24 8-3 6 9-5 8-5 24-17 9-3 25h-5l-2-26-20 1-7 25h-5l1-28Z\"/><path d=\"M-32-16q-10 4-11-5\" fill=\"none\" stroke=\"#6b6060\" stroke-width=\"3\"/><path d=\"M-13-27q4-16 7-14l3 12\"/></g><path d=\"M1074 468h104\" stroke=\"#6f806f\" stroke-width=\"7\" opacity=\".8\"/></g></defs><g data-pan=\"0.095\" data-period=\"1720\"><use href=\"#__P__mid\"/><use href=\"#__P__mid\" x=\"1720\"/></g><defs><g id=\"__P__near\"><path d=\"M0 545q165-18 385-9t404 8 486-16 445 17\" fill=\"none\" stroke=\"#e0bd8e\" stroke-width=\"5\"/><g fill=\"none\" stroke=\"#d7b389\" stroke-width=\"2\" opacity=\".56\"><path d=\"M97 528q100-9 220-2m850-32q127 5 157 18m-94 7 96 16M-90 514q97-18 173-9\"/></g></g></defs><g data-pan=\"0.22\" data-period=\"1720\"><use href=\"#__P__near\"/><use href=\"#__P__near\" x=\"1720\"/></g><path d=\"M0 539Q350 548 720 538t720 3V680H0Z\" fill=\"#d6b590\"/><path d=\"M0 563H1440V680H0Z\" fill=\"#bda17f\"/><path d=\"M0 565H1440\" stroke=\"#d6b590\" stroke-width=\"5\"/><path data-road=\"1\" d=\"M-160 651H1600\" stroke=\"#b9aa9a\" stroke-width=\"3\" stroke-dasharray=\"66 119\" opacity=\".64\"/>"},{"id":"guilin","name":"桂林","mood":"山水晨雾","region":"广西 · 桂林","detail":"喀斯特山峰 · 漓江意象 · 竹林","ambience":"stream","audioLand":"forest","weather":"fog","night":false,"accent":"#668871","ground":"#506c50","art":"<defs>\n    <g id=\"__P__palm\"><path d=\"M0 0q-7-95 20-192\" fill=\"none\" stroke=\"#928f65\" stroke-width=\"12\" stroke-linecap=\"round\"/><path d=\"M-1-28 9-28M0-63 13-62M6-98 17-96M12-127l12 2\" stroke=\"#c1b18a\" stroke-width=\"3\"/>\n    <path d=\"M19-186Q-47-243-99-190q60-17 117 11Q-44-217-53-145q21-36 73-37Q-7-270 41-253q-26 27-21 67Q67-265 117-216q-53-4-97 36Q97-216 126-151q-46-40-106-28Q73-185 73-121q-12-43-53-58Z\" fill=\"#658b70\"/><path d=\"M20-184q-46-38-101-12m100 14q47-39 85-33\" fill=\"none\" stroke=\"#9dab75\" stroke-width=\"3\" opacity=\".7\"/><circle cx=\"22\" cy=\"-180\" r=\"8\" fill=\"#908261\"/><circle cx=\"11\" cy=\"-178\" r=\"7\" fill=\"#b19b69\"/></g>\n    <g id=\"__P__boat\"><path d=\"M-48 0H56L33 14H-25Z\" fill=\"#7e816a\"/><path d=\"M-12-4V-75l40 69Z\" fill=\"#f5ebca\"/><path d=\"M-16-72-44-5h28Z\" fill=\"#e1d7b8\"/></g>\n    <g id=\"__P__willow\"><path d=\"M0 0q24-124-2-243\" fill=\"none\" stroke=\"#71866a\" stroke-width=\"10\" stroke-linecap=\"round\"/><path d=\"M-2-214q-36-73-101-27M-1-215q48-69 127-19M-1-202q-55-22-98 20M-4-227q-15-35-24-48\" fill=\"none\" stroke=\"#71866a\" stroke-width=\"6\"/>\n    <g fill=\"none\" stroke=\"#829d6e\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M-88-246q-20 37-13 102m26-105q-14 66 1 116m18-112q-7 62 6 79m-89-54q-10 58 6 89m165-119q15 66-5 113m25-109q13 62-2 119m18-95q17 60 3 100m16-94q20 59 9 115m13-105q23 61 16 100m-9-96q27 57 25 77\"/></g>\n    <g fill=\"#96ae7b\"><ellipse cx=\"-99\" cy=\"-208\" rx=\"6\" ry=\"15\" transform=\"rotate(15 -99 -208)\"/><ellipse cx=\"-77\" cy=\"-184\" rx=\"5\" ry=\"14\"/><ellipse cx=\"-140\" cy=\"-177\" rx=\"5\" ry=\"15\"/><ellipse cx=\"28\" cy=\"-189\" rx=\"5\" ry=\"14\"/><ellipse cx=\"53\" cy=\"-175\" rx=\"5\" ry=\"14\"/><ellipse cx=\"71\" cy=\"-159\" rx=\"5\" ry=\"14\"/><ellipse cx=\"96\" cy=\"-141\" rx=\"5\" ry=\"14\"/></g></g>\n    <g id=\"__P__pavilion\"><path d=\"M-44 0v-61M44 0v-61M-13 0v-61M13 0v-61\" stroke=\"#765f4c\" stroke-width=\"6\"/><path d=\"M-57-55H57L73-65Q27-66 0-98q-27 32-73 33Z\" fill=\"#60776b\"/><path d=\"M-54-64Q-24-68 0-90q24 22 54 26\" fill=\"none\" stroke=\"#98a388\" stroke-width=\"3\"/><path d=\"M-62 0H62v8H-62Z\" fill=\"#ada987\"/><path d=\"M-44-17H44\" stroke=\"#8e7a58\" stroke-width=\"4\"/></g>\n    <g id=\"__P__bamboo\" fill=\"none\" stroke=\"#577e65\" stroke-linecap=\"round\"><path d=\"M0 0 6-176M14 0 31-211M-8-5-31-157\" stroke-width=\"6\"/><path d=\"M2-47H10M4-88H12M5-129H13M22-79H30M27-135H35M-25-102l8-2\" stroke=\"#a4b294\" stroke-width=\"3\"/><path d=\"M9-129q-26-50-64-41m76 87q42-32 60-18m-88-11q-41-39-65-25M29-181q29-32 56-23\" stroke-width=\"2\"/><g fill=\"#658e6e\" stroke=\"none\"><path d=\"M-18-152q-16-49-29-37 5 20 29 37M-29-161q-45-7-39 11 17 6 39-11M-5-136q-33-9-25 15 16-1 25-15M39-184q4-47 18-39 4 16-18 39M54-195q47-9 42 9-20 11-42-9M50-93q26-43 36-25-5 20-36 25M44-88q39-3 34 13-16 7-34-13M-36-122q-24-39-33-20 8 17 33 20M-40-125q-36 5-26 19 17 4 26-19\"/></g></g>\n    </defs><defs><linearGradient id=\"__P__sky\" x2=\"0\" y2=\"1\"><stop stop-color=\"#d4e3d8\"/><stop offset=\"1\" stop-color=\"#edf0d7\"/></linearGradient></defs><rect width=\"1440\" height=\"680\" fill=\"url(#__P__sky)\"/><circle cx=\"1066\" cy=\"124\" r=\"43\" fill=\"#ece5bd\"/><g fill=\"#fffef0\" opacity=\".46\" data-float=\"1\"><path d=\"M155 133c12-29 41-20 46-8 17-21 41-9 42 9h36c12 0 12 12 0 12H138q-13-8 17-13Z\"/><path d=\"M750 98c11-21 38-14 43-2 15-14 36-5 37 9h40q12 8-3 12H727q-10-8 23-19Z\"/><path d=\"M1137 248c9-18 34-18 43 0h55q13 8-2 12h-120q-14-12 24-12Z\"/></g><defs><g id=\"__P__far\"><path d=\"M0 413q58-6 94-99 40-126 67-109 33 7 43 107 42 26 82 99 35 3 65-111 19-78 49-67 29 7 41 71 35 16 66 108 33 4 64-181 24-88 49-66 35 13 46 157 41 16 62 90 51-2 82-141 25-56 54-38 42 25 50 116 35-87 58-68 35 5 57 121 28 1 59-110 39-161 64-131 40 18 57 162 48 1 62 75 43-144 78-124 41 15 65 132 81-14 170 10V495H0Z\" fill=\"#a6bdb0\"/></g></defs><g data-pan=\"0.034\" data-period=\"1720\"><use href=\"#__P__far\"/><use href=\"#__P__far\" x=\"1720\"/></g><path d=\"M0 351q300 45 620 8t820 4v88H0Z\" fill=\"#e5eddb\" opacity=\".32\"/><defs><g id=\"__P__mid\"><path d=\"M0 455q80-13 108-142 36-128 65-75 16 1 46 130 33 27 76 86 87-5 111-116 18-77 47-64 24-36 44 39 28 22 54 141 128-31 188-19 60-7 109-148 19-53 48-38 40 10 56 119 38 21 56 65 109-70 144-139 27-56 54-20 33 4 69 142 83-40 159-9 27 14 39 9V490H0Z\" fill=\"#7c9d89\"/><path d=\"M0 453q233 13 488-5t443 2 789 3v98H0Z\" fill=\"#a9c5ad\"/><g fill=\"none\" stroke=\"#f7efce\" stroke-width=\"2\" opacity=\".33\" stroke-linecap=\"round\"><path d=\"M876 563h17\"/><path d=\"M880 594h79\"/><path d=\"M1300 477h28\"/><path d=\"M382 491h86\"/><path d=\"M1243 465h66\"/><path d=\"M797 497h44\"/><path d=\"M1396 459h27\"/><path d=\"M1013 479h84\"/><path d=\"M543 527h25\"/><path d=\"M611 485h42\"/><path d=\"M25 508h24\"/><path d=\"M1418 591h88\"/><path d=\"M1548 464h35\"/><path d=\"M216 474h63\"/><path d=\"M969 579h17\"/><path d=\"M706 580h22\"/><path d=\"M1676 464h45\"/><path d=\"M336 560h54\"/><path d=\"M1454 498h36\"/><path d=\"M352 546h26\"/><path d=\"M34 528h31\"/><path d=\"M1144 465h45\"/><path d=\"M1140 589h85\"/><path d=\"M466 493h33\"/><path d=\"M565 513h88\"/><path d=\"M714 591h77\"/><path d=\"M270 506h29\"/><path d=\"M339 583h41\"/><path d=\"M1424 602h22\"/><path d=\"M200 539h27\"/><path d=\"M1400 482h85\"/><path d=\"M664 536h39\"/><path d=\"M1560 483h81\"/><path d=\"M1180 538h61\"/><path d=\"M1420 581h78\"/><path d=\"M728 472h59\"/><path d=\"M1404 465h38\"/><path d=\"M226 581h59\"/><path d=\"M852 520h36\"/><path d=\"M778 467h28\"/><path d=\"M1185 514h40\"/><path d=\"M887 580h54\"/><path d=\"M120 465h47\"/><path d=\"M244 544h52\"/><path d=\"M1559 518h69\"/><path d=\"M1535 463h85\"/><path d=\"M1033 546h18\"/><path d=\"M958 608h83\"/><path d=\"M846 486h66\"/><path d=\"M1548 536h90\"/></g><g transform=\"translate(262 496)\"><path d=\"M-50 0H61m-108 4H59m-106 4H51\" stroke=\"#9d956d\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M-9 0v-37m0 20 30 24m-25-40 12 27\" stroke=\"#586f5b\" stroke-width=\"3\"/><circle cy=\"-44\" cx=\"-9\" r=\"6\" fill=\"#75816a\"/><path d=\"M-26-44h35l-14-9Z\" fill=\"#c6b886\"/></g></g></defs><g data-pan=\"0.105\" data-period=\"1720\"><use href=\"#__P__mid\"/><use href=\"#__P__mid\" x=\"1720\"/></g><defs><g id=\"__P__near\"><use href=\"#__P__bamboo\" transform=\"translate(1315 551) scale(1.05)\" /><use href=\"#__P__bamboo\" transform=\"translate(1357 550) scale(0.77)\" /><use href=\"#__P__bamboo\" transform=\"translate(86 550) scale(0.8)\" /><path d=\"M0 545q37-37 62-9 26-18 56 8 27-21 51 3m1338-6q15-23 39-11 39-37 68 11\" fill=\"#749776\"/></g></defs><g data-pan=\"0.27\" data-period=\"1720\"><use href=\"#__P__near\"/><use href=\"#__P__near\" x=\"1720\"/></g><path d=\"M0 539Q350 548 720 538t720 3V680H0Z\" fill=\"#d0d0aa\"/><path d=\"M0 563H1440V680H0Z\" fill=\"#bdc0a0\"/><path d=\"M0 565H1440\" stroke=\"#d0d0aa\" stroke-width=\"5\"/><path data-road=\"1\" d=\"M-160 651H1600\" stroke=\"#d9caae\" stroke-width=\"3\" stroke-dasharray=\"66 119\" opacity=\".64\"/>"},{"id":"westlake","name":"西湖","mood":"烟雨湖畔","region":"浙江 · 杭州","detail":"柳岸 · 石桥 · 细雨","ambience":"rain","audioLand":"forest","weather":"rain","night":false,"accent":"#7f917d","ground":"#5c7162","art":"<defs>\n    <g id=\"__P__palm\"><path d=\"M0 0q-7-95 20-192\" fill=\"none\" stroke=\"#928f65\" stroke-width=\"12\" stroke-linecap=\"round\"/><path d=\"M-1-28 9-28M0-63 13-62M6-98 17-96M12-127l12 2\" stroke=\"#c1b18a\" stroke-width=\"3\"/>\n    <path d=\"M19-186Q-47-243-99-190q60-17 117 11Q-44-217-53-145q21-36 73-37Q-7-270 41-253q-26 27-21 67Q67-265 117-216q-53-4-97 36Q97-216 126-151q-46-40-106-28Q73-185 73-121q-12-43-53-58Z\" fill=\"#658b70\"/><path d=\"M20-184q-46-38-101-12m100 14q47-39 85-33\" fill=\"none\" stroke=\"#9dab75\" stroke-width=\"3\" opacity=\".7\"/><circle cx=\"22\" cy=\"-180\" r=\"8\" fill=\"#908261\"/><circle cx=\"11\" cy=\"-178\" r=\"7\" fill=\"#b19b69\"/></g>\n    <g id=\"__P__boat\"><path d=\"M-48 0H56L33 14H-25Z\" fill=\"#7e816a\"/><path d=\"M-12-4V-75l40 69Z\" fill=\"#f5ebca\"/><path d=\"M-16-72-44-5h28Z\" fill=\"#e1d7b8\"/></g>\n    <g id=\"__P__willow\"><path d=\"M0 0q24-124-2-243\" fill=\"none\" stroke=\"#71866a\" stroke-width=\"10\" stroke-linecap=\"round\"/><path d=\"M-2-214q-36-73-101-27M-1-215q48-69 127-19M-1-202q-55-22-98 20M-4-227q-15-35-24-48\" fill=\"none\" stroke=\"#71866a\" stroke-width=\"6\"/>\n    <g fill=\"none\" stroke=\"#829d6e\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M-88-246q-20 37-13 102m26-105q-14 66 1 116m18-112q-7 62 6 79m-89-54q-10 58 6 89m165-119q15 66-5 113m25-109q13 62-2 119m18-95q17 60 3 100m16-94q20 59 9 115m13-105q23 61 16 100m-9-96q27 57 25 77\"/></g>\n    <g fill=\"#96ae7b\"><ellipse cx=\"-99\" cy=\"-208\" rx=\"6\" ry=\"15\" transform=\"rotate(15 -99 -208)\"/><ellipse cx=\"-77\" cy=\"-184\" rx=\"5\" ry=\"14\"/><ellipse cx=\"-140\" cy=\"-177\" rx=\"5\" ry=\"15\"/><ellipse cx=\"28\" cy=\"-189\" rx=\"5\" ry=\"14\"/><ellipse cx=\"53\" cy=\"-175\" rx=\"5\" ry=\"14\"/><ellipse cx=\"71\" cy=\"-159\" rx=\"5\" ry=\"14\"/><ellipse cx=\"96\" cy=\"-141\" rx=\"5\" ry=\"14\"/></g></g>\n    <g id=\"__P__pavilion\"><path d=\"M-44 0v-61M44 0v-61M-13 0v-61M13 0v-61\" stroke=\"#765f4c\" stroke-width=\"6\"/><path d=\"M-57-55H57L73-65Q27-66 0-98q-27 32-73 33Z\" fill=\"#60776b\"/><path d=\"M-54-64Q-24-68 0-90q24 22 54 26\" fill=\"none\" stroke=\"#98a388\" stroke-width=\"3\"/><path d=\"M-62 0H62v8H-62Z\" fill=\"#ada987\"/><path d=\"M-44-17H44\" stroke=\"#8e7a58\" stroke-width=\"4\"/></g>\n    <g id=\"__P__bamboo\" fill=\"none\" stroke=\"#577e65\" stroke-linecap=\"round\"><path d=\"M0 0 6-176M14 0 31-211M-8-5-31-157\" stroke-width=\"6\"/><path d=\"M2-47H10M4-88H12M5-129H13M22-79H30M27-135H35M-25-102l8-2\" stroke=\"#a4b294\" stroke-width=\"3\"/><path d=\"M9-129q-26-50-64-41m76 87q42-32 60-18m-88-11q-41-39-65-25M29-181q29-32 56-23\" stroke-width=\"2\"/><g fill=\"#658e6e\" stroke=\"none\"><path d=\"M-18-152q-16-49-29-37 5 20 29 37M-29-161q-45-7-39 11 17 6 39-11M-5-136q-33-9-25 15 16-1 25-15M39-184q4-47 18-39 4 16-18 39M54-195q47-9 42 9-20 11-42-9M50-93q26-43 36-25-5 20-36 25M44-88q39-3 34 13-16 7-34-13M-36-122q-24-39-33-20 8 17 33 20M-40-125q-36 5-26 19 17 4 26-19\"/></g></g>\n    </defs><defs><linearGradient id=\"__P__sky\" x2=\"0\" y2=\"1\"><stop stop-color=\"#c4d5cf\"/><stop offset=\"1\" stop-color=\"#e9e9d7\"/></linearGradient><linearGradient id=\"__P__water\" x2=\"0\" y2=\"1\"><stop stop-color=\"#b6cdbe\"/><stop offset=\"1\" stop-color=\"#c8d4bb\"/></linearGradient></defs><rect width=\"1440\" height=\"680\" fill=\"url(#__P__sky)\"/><g fill=\"#e7edde\" opacity=\".46\" data-float=\"1\"><path d=\"M155 133c12-29 41-20 46-8 17-21 41-9 42 9h36c12 0 12 12 0 12H138q-13-8 17-13Z\"/><path d=\"M750 98c11-21 38-14 43-2 15-14 36-5 37 9h40q12 8-3 12H727q-10-8 23-19Z\"/><path d=\"M1137 248c9-18 34-18 43 0h55q13 8-2 12h-120q-14-12 24-12Z\"/></g><defs><g id=\"__P__far\"><path d=\"M0 385q163-101 293-55t241 36 284-46 304 61q169-48 272-22t326 26v90H0Z\" fill=\"#b4c4b6\"/><path d=\"M0 409q199-69 315-28t280 16 300-24 393 36 432 0v68H0Z\" fill=\"#9cae9e\"/></g></defs><g data-pan=\"0.035\" data-period=\"1720\"><use href=\"#__P__far\"/><use href=\"#__P__far\" x=\"1720\"/></g><path d=\"M0 409H1440V557H0Z\" fill=\"url(#__P__water)\"/><defs><g id=\"__P__mid\"><g fill=\"none\" stroke=\"#f5eed5\" stroke-width=\"2\" opacity=\".33\" stroke-linecap=\"round\"><path d=\"M314 510h14\"/><path d=\"M1504 469h81\"/><path d=\"M393 495h33\"/><path d=\"M343 526h44\"/><path d=\"M1148 532h87\"/><path d=\"M684 496h74\"/><path d=\"M1569 497h81\"/><path d=\"M413 481h65\"/><path d=\"M1432 408h21\"/><path d=\"M1489 432h29\"/><path d=\"M1072 527h87\"/><path d=\"M1405 503h50\"/><path d=\"M1017 470h69\"/><path d=\"M1457 446h73\"/><path d=\"M434 491h44\"/><path d=\"M569 404h72\"/><path d=\"M847 406h15\"/><path d=\"M1561 476h67\"/><path d=\"M1477 544h59\"/><path d=\"M1128 484h24\"/><path d=\"M741 416h40\"/><path d=\"M582 482h52\"/><path d=\"M159 550h71\"/><path d=\"M154 492h17\"/><path d=\"M1586 428h63\"/><path d=\"M894 412h72\"/><path d=\"M802 434h49\"/><path d=\"M597 411h49\"/><path d=\"M547 402h33\"/><path d=\"M506 538h90\"/><path d=\"M317 543h73\"/><path d=\"M406 434h38\"/><path d=\"M1544 520h41\"/><path d=\"M652 428h53\"/><path d=\"M617 554h32\"/><path d=\"M999 448h85\"/><path d=\"M1654 406h78\"/><path d=\"M1006 450h37\"/><path d=\"M1512 454h64\"/><path d=\"M488 434h80\"/><path d=\"M13 445h65\"/><path d=\"M1627 421h34\"/><path d=\"M1077 436h51\"/><path d=\"M696 532h90\"/><path d=\"M1653 509h89\"/><path d=\"M886 540h63\"/><path d=\"M1199 508h34\"/><path d=\"M25 473h14\"/><path d=\"M1219 539h23\"/><path d=\"M1028 509h16\"/></g><path d=\"M58 448q152-111 321-6l-2 14q-169-58-319 8Z\" fill=\"#cbd0b7\"/><path d=\"M79 445q146-83 276 0\" fill=\"none\" stroke=\"#e3e2cd\" stroke-width=\"8\"/><path d=\"M89 434.17v-16\" stroke=\"#e3e2cd\" stroke-width=\"4\"/><path d=\"M118 415.3629081632653v-16\" stroke=\"#e3e2cd\" stroke-width=\"4\"/><path d=\"M147 401.4473469387755v-16\" stroke=\"#e3e2cd\" stroke-width=\"4\"/><path d=\"M176 392.4233163265306v-16\" stroke=\"#e3e2cd\" stroke-width=\"4\"/><path d=\"M205 388.2908163265306v-16\" stroke=\"#e3e2cd\" stroke-width=\"4\"/><path d=\"M234 389.0498469387755v-16\" stroke=\"#e3e2cd\" stroke-width=\"4\"/><path d=\"M263 394.7004081632653v-16\" stroke=\"#e3e2cd\" stroke-width=\"4\"/><path d=\"M292 405.2425v-16\" stroke=\"#e3e2cd\" stroke-width=\"4\"/><path d=\"M321 420.6761224489796v-16\" stroke=\"#e3e2cd\" stroke-width=\"4\"/><path d=\"M350 441.0012755102041v-16\" stroke=\"#e3e2cd\" stroke-width=\"4\"/><path d=\"M164 457q50-63 98-4\" fill=\"#b4c8b5\"/><use href=\"#__P__pavilion\" transform=\"translate(324 420) scale(0.63)\" /><g transform=\"translate(1080 387)\" fill=\"#8b927c\"><path d=\"M-23 0v-113h46V0Z\" fill=\"#b9b299\"/><path d=\"M-48 -4H48l9-7q-35-3-57-15Q-20 -14 -57 -11Z\"/><path d=\"M-12 -5v13m12-13v13m12-13v13\" stroke=\"#737f6c\" stroke-width=\"3\"/><path d=\"M-43 -27H43l9-7q-35-3-52-15Q-20 -37 -52 -34Z\"/><path d=\"M-12 -28v13m12-13v13m12-13v13\" stroke=\"#737f6c\" stroke-width=\"3\"/><path d=\"M-38 -50H38l9-7q-35-3-47-15Q-20 -60 -47 -57Z\"/><path d=\"M-12 -51v13m12-13v13m12-13v13\" stroke=\"#737f6c\" stroke-width=\"3\"/><path d=\"M-33 -73H33l9-7q-35-3-42-15Q-20 -83 -42 -80Z\"/><path d=\"M-12 -74v13m12-13v13m12-13v13\" stroke=\"#737f6c\" stroke-width=\"3\"/><path d=\"M-28 -96H28l9-7q-35-3-37-15Q-20 -106 -37 -103Z\"/><path d=\"M-12 -97v13m12-13v13m12-13v13\" stroke=\"#737f6c\" stroke-width=\"3\"/><path d=\"M0-123v-23\" stroke=\"#828c77\" stroke-width=\"3\"/></g><g transform=\"translate(900 496)\"><path d=\"M-54-4q54 14 116-3L37 16h-60Z\" fill=\"#848673\"/><path d=\"M-20-2q-3-34 31-33 37 2 41 29Z\" fill=\"#c3b894\"/><path d=\"M-14-8q4-17 25-16 20 0 29 16\" fill=\"none\" stroke=\"#999c7e\" stroke-width=\"2\"/></g></g></defs><g data-pan=\"0.1\" data-period=\"1720\"><use href=\"#__P__mid\"/><use href=\"#__P__mid\" x=\"1720\"/></g><defs><g id=\"__P__near\"><use href=\"#__P__willow\" transform=\"translate(87 550) scale(1.15)\" /><use href=\"#__P__willow\" transform=\"translate(1435 550) scale(1.1)\" /><g transform=\"translate(219 527)\" fill=\"#8aa57b\"><ellipse rx=\"28\" ry=\"7\"/><ellipse cx=\"43\" cy=\"-10\" rx=\"22\" ry=\"6\"/><ellipse cx=\"89\" cy=\"3\" rx=\"25\" ry=\"7\"/><path d=\"M43-10v-16\" stroke=\"#8aa57b\" stroke-width=\"2\"/><path d=\"M43-26q-19-4-10-13l10 7q14-17 15-3-3 10-15 9Z\" fill=\"#d2b8a3\"/></g></g></defs><g data-pan=\"0.24\" data-period=\"1720\"><use href=\"#__P__near\"/><use href=\"#__P__near\" x=\"1720\"/></g><path d=\"M0 539Q350 548 720 538t720 3V680H0Z\" fill=\"#d3d5bb\"/><path d=\"M0 563H1440V680H0Z\" fill=\"#bcbfac\"/><path d=\"M0 565H1440\" stroke=\"#d3d5bb\" stroke-width=\"5\"/><path data-road=\"1\" d=\"M-160 651H1600\" stroke=\"#d9caae\" stroke-width=\"3\" stroke-dasharray=\"66 119\" opacity=\".64\"/><defs><pattern id=\"__P__rain\" width=\"163\" height=\"167\" patternUnits=\"userSpaceOnUse\"><path d=\"M22-5 13 18m90 28-8 21m64 37-6 21M60 140l-8 23\" fill=\"none\" stroke=\"#f4f5e8\" stroke-width=\"1.8\" opacity=\".5\"/></pattern></defs><rect data-rain=\"1\" width=\"1440\" height=\"680\" fill=\"url(#__P__rain)\" opacity=\".47\" pointer-events=\"none\"/>"},{"id":"chongqing","name":"重庆","mood":"山城夜色","region":"重庆","detail":"江桥 · 层叠建筑 · 城市灯火","ambience":"city","audioLand":"city","weather":"cloudy","night":true,"accent":"#9f927a","ground":"#40545a","art":"<defs>\n    <g id=\"__P__palm\"><path d=\"M0 0q-7-95 20-192\" fill=\"none\" stroke=\"#928f65\" stroke-width=\"12\" stroke-linecap=\"round\"/><path d=\"M-1-28 9-28M0-63 13-62M6-98 17-96M12-127l12 2\" stroke=\"#c1b18a\" stroke-width=\"3\"/>\n    <path d=\"M19-186Q-47-243-99-190q60-17 117 11Q-44-217-53-145q21-36 73-37Q-7-270 41-253q-26 27-21 67Q67-265 117-216q-53-4-97 36Q97-216 126-151q-46-40-106-28Q73-185 73-121q-12-43-53-58Z\" fill=\"#658b70\"/><path d=\"M20-184q-46-38-101-12m100 14q47-39 85-33\" fill=\"none\" stroke=\"#9dab75\" stroke-width=\"3\" opacity=\".7\"/><circle cx=\"22\" cy=\"-180\" r=\"8\" fill=\"#908261\"/><circle cx=\"11\" cy=\"-178\" r=\"7\" fill=\"#b19b69\"/></g>\n    <g id=\"__P__boat\"><path d=\"M-48 0H56L33 14H-25Z\" fill=\"#7e816a\"/><path d=\"M-12-4V-75l40 69Z\" fill=\"#f5ebca\"/><path d=\"M-16-72-44-5h28Z\" fill=\"#e1d7b8\"/></g>\n    <g id=\"__P__willow\"><path d=\"M0 0q24-124-2-243\" fill=\"none\" stroke=\"#71866a\" stroke-width=\"10\" stroke-linecap=\"round\"/><path d=\"M-2-214q-36-73-101-27M-1-215q48-69 127-19M-1-202q-55-22-98 20M-4-227q-15-35-24-48\" fill=\"none\" stroke=\"#71866a\" stroke-width=\"6\"/>\n    <g fill=\"none\" stroke=\"#829d6e\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M-88-246q-20 37-13 102m26-105q-14 66 1 116m18-112q-7 62 6 79m-89-54q-10 58 6 89m165-119q15 66-5 113m25-109q13 62-2 119m18-95q17 60 3 100m16-94q20 59 9 115m13-105q23 61 16 100m-9-96q27 57 25 77\"/></g>\n    <g fill=\"#96ae7b\"><ellipse cx=\"-99\" cy=\"-208\" rx=\"6\" ry=\"15\" transform=\"rotate(15 -99 -208)\"/><ellipse cx=\"-77\" cy=\"-184\" rx=\"5\" ry=\"14\"/><ellipse cx=\"-140\" cy=\"-177\" rx=\"5\" ry=\"15\"/><ellipse cx=\"28\" cy=\"-189\" rx=\"5\" ry=\"14\"/><ellipse cx=\"53\" cy=\"-175\" rx=\"5\" ry=\"14\"/><ellipse cx=\"71\" cy=\"-159\" rx=\"5\" ry=\"14\"/><ellipse cx=\"96\" cy=\"-141\" rx=\"5\" ry=\"14\"/></g></g>\n    <g id=\"__P__pavilion\"><path d=\"M-44 0v-61M44 0v-61M-13 0v-61M13 0v-61\" stroke=\"#765f4c\" stroke-width=\"6\"/><path d=\"M-57-55H57L73-65Q27-66 0-98q-27 32-73 33Z\" fill=\"#60776b\"/><path d=\"M-54-64Q-24-68 0-90q24 22 54 26\" fill=\"none\" stroke=\"#98a388\" stroke-width=\"3\"/><path d=\"M-62 0H62v8H-62Z\" fill=\"#ada987\"/><path d=\"M-44-17H44\" stroke=\"#8e7a58\" stroke-width=\"4\"/></g>\n    <g id=\"__P__bamboo\" fill=\"none\" stroke=\"#577e65\" stroke-linecap=\"round\"><path d=\"M0 0 6-176M14 0 31-211M-8-5-31-157\" stroke-width=\"6\"/><path d=\"M2-47H10M4-88H12M5-129H13M22-79H30M27-135H35M-25-102l8-2\" stroke=\"#a4b294\" stroke-width=\"3\"/><path d=\"M9-129q-26-50-64-41m76 87q42-32 60-18m-88-11q-41-39-65-25M29-181q29-32 56-23\" stroke-width=\"2\"/><g fill=\"#658e6e\" stroke=\"none\"><path d=\"M-18-152q-16-49-29-37 5 20 29 37M-29-161q-45-7-39 11 17 6 39-11M-5-136q-33-9-25 15 16-1 25-15M39-184q4-47 18-39 4 16-18 39M54-195q47-9 42 9-20 11-42-9M50-93q26-43 36-25-5 20-36 25M44-88q39-3 34 13-16 7-34-13M-36-122q-24-39-33-20 8 17 33 20M-40-125q-36 5-26 19 17 4 26-19\"/></g></g>\n    </defs><defs><linearGradient id=\"__P__sky\" x2=\"0\" y2=\"1\"><stop stop-color=\"#263b50\"/><stop offset=\"1\" stop-color=\"#a69b8c\"/></linearGradient><linearGradient id=\"__P__water\" x2=\"0\" y2=\"1\"><stop stop-color=\"#526c70\"/><stop offset=\"1\" stop-color=\"#849087\"/></linearGradient></defs><rect width=\"1440\" height=\"680\" fill=\"url(#__P__sky)\"/><circle cx=\"1062\" cy=\"135\" r=\"24\" fill=\"#d8ceb0\" opacity=\".87\"/><defs><g id=\"__P__far\"><path d=\"M0 381q199-131 338-65t249 26 320-19 391 32 422 26v124H0Z\" fill=\"#43576a\"/><path d=\"M0 414V346h53v67Z\" fill=\"#465b63\"/><path d=\"M7 356h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.26\"/><path d=\"M7 374h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.51\"/><path d=\"M7 392h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.43\"/><path d=\"M20 374h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.28\"/><path d=\"M33 374h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.34\"/><path d=\"M33 392h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.47\"/><path d=\"M46 374h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.44\"/><path d=\"M46 392h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.50\"/><path d=\"M64 414V252h45v161Z\" fill=\"#5e6c6d\"/><path d=\"M71 262h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.41\"/><path d=\"M71 280h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M71 298h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.55\"/><path d=\"M71 316h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.48\"/><path d=\"M71 352h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.55\"/><path d=\"M84 262h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.34\"/><path d=\"M84 280h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.59\"/><path d=\"M84 298h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.51\"/><path d=\"M84 316h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.44\"/><path d=\"M84 352h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.43\"/><path d=\"M84 370h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.40\"/><path d=\"M84 388h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.47\"/><path d=\"M97 262h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.35\"/><path d=\"M97 298h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.37\"/><path d=\"M97 370h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.50\"/><path d=\"M128 414V242h49v171Z\" fill=\"#536366\"/><path d=\"M135 270h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.46\"/><path d=\"M135 288h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.32\"/><path d=\"M135 306h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.41\"/><path d=\"M135 324h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.45\"/><path d=\"M135 360h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.55\"/><path d=\"M135 378h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.49\"/><path d=\"M135 396h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.32\"/><path d=\"M148 252h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.42\"/><path d=\"M148 288h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.32\"/><path d=\"M148 360h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.34\"/><path d=\"M148 378h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.47\"/><path d=\"M148 396h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.33\"/><path d=\"M161 270h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M161 288h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.42\"/><path d=\"M161 360h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.26\"/><path d=\"M161 378h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M192 414V288h46v125Z\" fill=\"#536366\"/><path d=\"M199 298h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.50\"/><path d=\"M199 388h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.42\"/><path d=\"M212 298h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M212 352h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.32\"/><path d=\"M212 370h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.58\"/><path d=\"M212 388h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.50\"/><path d=\"M225 298h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.53\"/><path d=\"M225 334h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.51\"/><path d=\"M225 352h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.42\"/><path d=\"M225 370h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.42\"/><path d=\"M256 414V249h42v164Z\" fill=\"#465b63\"/><path d=\"M263 277h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.35\"/><path d=\"M263 313h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.43\"/><path d=\"M263 331h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.48\"/><path d=\"M263 349h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.40\"/><path d=\"M263 367h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.47\"/><path d=\"M263 385h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.52\"/><path d=\"M276 259h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.55\"/><path d=\"M276 295h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.35\"/><path d=\"M276 331h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.44\"/><path d=\"M276 385h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.46\"/><path d=\"M276 403h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.47\"/><path d=\"M289 259h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.49\"/><path d=\"M289 277h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.28\"/><path d=\"M289 295h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.49\"/><path d=\"M289 331h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.53\"/><path d=\"M289 349h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.58\"/><path d=\"M289 367h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.30\"/><path d=\"M320 414V322h47v91Z\" fill=\"#465b63\"/><path d=\"M327 386h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.60\"/><path d=\"M340 332h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.42\"/><path d=\"M340 350h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.60\"/><path d=\"M340 368h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.30\"/><path d=\"M340 404h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M353 332h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.30\"/><path d=\"M353 368h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M353 404h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.39\"/><path d=\"M384 414V222h52v191Z\" fill=\"#536366\"/><path d=\"M391 232h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.55\"/><path d=\"M391 250h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.44\"/><path d=\"M391 268h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.32\"/><path d=\"M391 286h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.28\"/><path d=\"M391 340h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.29\"/><path d=\"M391 376h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.27\"/><path d=\"M404 250h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.43\"/><path d=\"M404 358h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.37\"/><path d=\"M404 376h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.33\"/><path d=\"M417 232h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.33\"/><path d=\"M417 268h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.34\"/><path d=\"M417 304h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.28\"/><path d=\"M417 322h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.53\"/><path d=\"M417 376h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.59\"/><path d=\"M430 250h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.46\"/><path d=\"M430 268h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.27\"/><path d=\"M430 286h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.37\"/><path d=\"M430 322h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.50\"/><path d=\"M430 340h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.34\"/><path d=\"M430 358h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.45\"/><path d=\"M448 414V302h36v111Z\" fill=\"#536366\"/><path d=\"M455 312h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.34\"/><path d=\"M455 330h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.39\"/><path d=\"M455 348h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.54\"/><path d=\"M455 366h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.44\"/><path d=\"M455 384h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.48\"/><path d=\"M455 402h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.38\"/><path d=\"M468 312h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.54\"/><path d=\"M468 330h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.35\"/><path d=\"M468 366h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.37\"/><path d=\"M512 414V275h47v138Z\" fill=\"#5e6c6d\"/><path d=\"M519 321h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.47\"/><path d=\"M519 339h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M519 357h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.49\"/><path d=\"M519 375h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.54\"/><path d=\"M519 393h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.46\"/><path d=\"M532 285h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.42\"/><path d=\"M532 357h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.60\"/><path d=\"M532 375h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.41\"/><path d=\"M545 285h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.36\"/><path d=\"M545 303h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.39\"/><path d=\"M545 339h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.37\"/><path d=\"M545 357h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.32\"/><path d=\"M545 375h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.40\"/><path d=\"M576 414V303h37v110Z\" fill=\"#465b63\"/><path d=\"M583 349h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.42\"/><path d=\"M583 367h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.53\"/><path d=\"M583 385h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.39\"/><path d=\"M596 349h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M596 385h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.46\"/><path d=\"M640 414V221h46v192Z\" fill=\"#5e6c6d\"/><path d=\"M647 231h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.52\"/><path d=\"M647 249h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.53\"/><path d=\"M647 285h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M647 303h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.54\"/><path d=\"M647 321h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.51\"/><path d=\"M647 357h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.54\"/><path d=\"M647 375h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M647 393h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.59\"/><path d=\"M660 249h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M660 267h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.52\"/><path d=\"M660 285h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.43\"/><path d=\"M660 321h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M660 339h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.60\"/><path d=\"M660 357h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.59\"/><path d=\"M660 375h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.27\"/><path d=\"M673 231h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.27\"/><path d=\"M673 267h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.36\"/><path d=\"M704 414V252h44v161Z\" fill=\"#536366\"/><path d=\"M711 280h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.26\"/><path d=\"M711 298h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M711 316h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.30\"/><path d=\"M711 352h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.54\"/><path d=\"M724 262h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M724 280h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.60\"/><path d=\"M724 298h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.42\"/><path d=\"M724 316h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.49\"/><path d=\"M724 352h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.33\"/><path d=\"M724 370h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.48\"/><path d=\"M724 388h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.26\"/><path d=\"M737 280h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M737 316h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.38\"/><path d=\"M737 388h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.46\"/><path d=\"M768 414V238h45v175Z\" fill=\"#465b63\"/><path d=\"M775 248h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.37\"/><path d=\"M775 284h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.55\"/><path d=\"M775 320h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.49\"/><path d=\"M775 392h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.50\"/><path d=\"M788 284h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.45\"/><path d=\"M788 302h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.33\"/><path d=\"M788 356h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.35\"/><path d=\"M788 374h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.40\"/><path d=\"M801 248h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.31\"/><path d=\"M801 338h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.36\"/><path d=\"M801 392h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.46\"/><path d=\"M832 414V290h44v123Z\" fill=\"#465b63\"/><path d=\"M839 318h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.26\"/><path d=\"M839 336h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M839 372h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.40\"/><path d=\"M839 390h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.31\"/><path d=\"M852 318h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.59\"/><path d=\"M852 336h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.59\"/><path d=\"M852 372h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.58\"/><path d=\"M852 390h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.45\"/><path d=\"M865 318h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.34\"/><path d=\"M865 372h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.51\"/><path d=\"M865 390h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.30\"/><path d=\"M896 414V310h49v103Z\" fill=\"#5e6c6d\"/><path d=\"M903 338h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.30\"/><path d=\"M903 356h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.31\"/><path d=\"M916 356h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.39\"/><path d=\"M916 374h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.31\"/><path d=\"M916 392h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.33\"/><path d=\"M929 356h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.41\"/><path d=\"M960 414V320h40v93Z\" fill=\"#5e6c6d\"/><path d=\"M967 330h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.32\"/><path d=\"M967 348h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M967 366h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.45\"/><path d=\"M980 348h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.55\"/><path d=\"M980 366h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.42\"/><path d=\"M980 402h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.41\"/><path d=\"M993 330h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.54\"/><path d=\"M993 348h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.54\"/><path d=\"M1024 414V287h55v126Z\" fill=\"#5e6c6d\"/><path d=\"M1031 297h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.58\"/><path d=\"M1031 315h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.31\"/><path d=\"M1031 333h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.37\"/><path d=\"M1031 351h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.45\"/><path d=\"M1044 297h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.39\"/><path d=\"M1044 315h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.49\"/><path d=\"M1044 333h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.52\"/><path d=\"M1044 351h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M1044 369h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.39\"/><path d=\"M1057 297h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.39\"/><path d=\"M1057 315h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.53\"/><path d=\"M1057 351h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.55\"/><path d=\"M1057 369h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.49\"/><path d=\"M1057 387h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.48\"/><path d=\"M1070 297h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.28\"/><path d=\"M1070 315h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.29\"/><path d=\"M1070 351h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M1088 414V225h40v188Z\" fill=\"#465b63\"/><path d=\"M1095 235h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.43\"/><path d=\"M1095 253h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.39\"/><path d=\"M1095 271h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.59\"/><path d=\"M1095 307h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M1095 361h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.59\"/><path d=\"M1095 379h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.45\"/><path d=\"M1095 397h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.58\"/><path d=\"M1108 235h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.43\"/><path d=\"M1108 253h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.36\"/><path d=\"M1108 271h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.33\"/><path d=\"M1108 361h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.58\"/><path d=\"M1108 379h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M1108 397h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.42\"/><path d=\"M1121 235h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.42\"/><path d=\"M1121 253h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.59\"/><path d=\"M1121 307h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M1121 343h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.33\"/><path d=\"M1121 379h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.54\"/><path d=\"M1121 397h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.28\"/><path d=\"M1152 414V263h50v150Z\" fill=\"#536366\"/><path d=\"M1159 291h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.53\"/><path d=\"M1159 309h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.47\"/><path d=\"M1159 327h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.26\"/><path d=\"M1159 381h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.40\"/><path d=\"M1159 399h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.25\"/><path d=\"M1172 309h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.37\"/><path d=\"M1172 327h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M1172 345h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.48\"/><path d=\"M1172 363h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.30\"/><path d=\"M1172 381h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.60\"/><path d=\"M1172 399h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.48\"/><path d=\"M1185 309h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.35\"/><path d=\"M1185 327h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.53\"/><path d=\"M1185 345h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.32\"/><path d=\"M1185 363h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.32\"/><path d=\"M1216 414V250h46v163Z\" fill=\"#536366\"/><path d=\"M1223 278h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.44\"/><path d=\"M1223 314h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.52\"/><path d=\"M1223 368h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.37\"/><path d=\"M1223 386h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.37\"/><path d=\"M1223 404h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.36\"/><path d=\"M1236 260h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.33\"/><path d=\"M1236 296h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.59\"/><path d=\"M1236 314h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.26\"/><path d=\"M1236 350h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M1236 386h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.47\"/><path d=\"M1236 404h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.59\"/><path d=\"M1249 260h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.43\"/><path d=\"M1249 278h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.32\"/><path d=\"M1249 368h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.41\"/><path d=\"M1280 414V290h42v123Z\" fill=\"#5e6c6d\"/><path d=\"M1287 300h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.30\"/><path d=\"M1287 336h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M1287 354h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.48\"/><path d=\"M1287 372h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.33\"/><path d=\"M1287 390h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.40\"/><path d=\"M1300 300h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.55\"/><path d=\"M1300 318h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.54\"/><path d=\"M1300 336h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.43\"/><path d=\"M1300 354h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.38\"/><path d=\"M1313 300h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.42\"/><path d=\"M1313 318h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.33\"/><path d=\"M1313 390h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M1344 414V339h42v74Z\" fill=\"#465b63\"/><path d=\"M1351 349h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.34\"/><path d=\"M1351 367h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.32\"/><path d=\"M1351 403h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.49\"/><path d=\"M1364 349h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.55\"/><path d=\"M1364 367h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.35\"/><path d=\"M1377 349h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.58\"/><path d=\"M1377 403h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.41\"/><path d=\"M1408 414V285h50v128Z\" fill=\"#465b63\"/><path d=\"M1415 349h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.36\"/><path d=\"M1415 367h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M1415 403h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.26\"/><path d=\"M1428 295h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.34\"/><path d=\"M1428 313h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.44\"/><path d=\"M1428 331h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M1428 349h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.26\"/><path d=\"M1428 385h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.38\"/><path d=\"M1441 295h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.35\"/><path d=\"M1441 313h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.35\"/><path d=\"M1441 331h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.36\"/><path d=\"M1441 367h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.48\"/><path d=\"M1472 414V339h37v74Z\" fill=\"#5e6c6d\"/><path d=\"M1479 349h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.57\"/><path d=\"M1479 367h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.43\"/><path d=\"M1479 385h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.37\"/><path d=\"M1492 367h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.50\"/><path d=\"M1492 385h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.30\"/><path d=\"M1536 414V297h39v116Z\" fill=\"#465b63\"/><path d=\"M1543 325h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.46\"/><path d=\"M1543 343h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.26\"/><path d=\"M1543 361h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.40\"/><path d=\"M1556 307h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.38\"/><path d=\"M1556 325h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.26\"/><path d=\"M1556 397h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.53\"/><path d=\"M1569 307h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.55\"/><path d=\"M1569 343h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.50\"/><path d=\"M1569 361h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.48\"/><path d=\"M1569 379h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.40\"/><path d=\"M1569 397h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.59\"/><path d=\"M1600 414V273h38v140Z\" fill=\"#465b63\"/><path d=\"M1607 283h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.30\"/><path d=\"M1607 319h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.56\"/><path d=\"M1607 373h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.35\"/><path d=\"M1620 283h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.36\"/><path d=\"M1620 301h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.26\"/><path d=\"M1620 337h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.52\"/><path d=\"M1664 414V314h47v99Z\" fill=\"#5e6c6d\"/><path d=\"M1671 378h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.48\"/><path d=\"M1671 396h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.39\"/><path d=\"M1684 324h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.36\"/><path d=\"M1684 342h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.44\"/><path d=\"M1684 378h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.33\"/><path d=\"M1697 342h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.29\"/><path d=\"M1697 396h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.44\"/><path d=\"M1728 414V338h52v75Z\" fill=\"#5e6c6d\"/><path d=\"M1735 366h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.35\"/><path d=\"M1735 384h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.34\"/><path d=\"M1748 348h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.36\"/><path d=\"M1761 348h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.47\"/><path d=\"M1761 366h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.55\"/><path d=\"M1774 384h5\" stroke=\"#d7bb84\" stroke-width=\"5\" opacity=\"0.36\"/></g></defs><g data-pan=\"0.036\" data-period=\"1720\"><use href=\"#__P__far\"/><use href=\"#__P__far\" x=\"1720\"/></g><path d=\"M0 418H1440V558H0Z\" fill=\"url(#__P__water)\"/><defs><g id=\"__P__mid\"><g fill=\"none\" stroke=\"#c9a583\" stroke-width=\"2\" opacity=\".33\" stroke-linecap=\"round\"><path d=\"M1109 547h40\"/><path d=\"M1029 483h23\"/><path d=\"M260 522h83\"/><path d=\"M1620 460h58\"/><path d=\"M1515 551h85\"/><path d=\"M822 464h87\"/><path d=\"M1389 504h58\"/><path d=\"M778 452h78\"/><path d=\"M77 501h17\"/><path d=\"M884 547h37\"/><path d=\"M1093 476h19\"/><path d=\"M202 572h84\"/><path d=\"M666 459h84\"/><path d=\"M1040 516h49\"/><path d=\"M1505 601h74\"/><path d=\"M796 472h88\"/><path d=\"M1362 518h65\"/><path d=\"M1626 569h72\"/><path d=\"M1393 503h26\"/><path d=\"M695 510h36\"/><path d=\"M1220 446h46\"/><path d=\"M156 476h44\"/><path d=\"M1291 472h43\"/><path d=\"M1278 460h26\"/><path d=\"M1638 550h89\"/><path d=\"M630 546h19\"/><path d=\"M18 479h73\"/><path d=\"M390 573h28\"/><path d=\"M1166 564h21\"/><path d=\"M1229 543h17\"/><path d=\"M949 448h84\"/><path d=\"M1073 485h41\"/><path d=\"M1101 527h90\"/><path d=\"M948 557h67\"/><path d=\"M1190 449h49\"/><path d=\"M1023 511h33\"/><path d=\"M1046 462h27\"/><path d=\"M693 488h34\"/><path d=\"M1190 595h46\"/><path d=\"M929 486h42\"/><path d=\"M513 595h21\"/><path d=\"M806 519h25\"/><path d=\"M1273 568h83\"/><path d=\"M1674 530h88\"/><path d=\"M165 516h50\"/><path d=\"M29 576h58\"/><path d=\"M1672 539h32\"/><path d=\"M873 513h14\"/><path d=\"M1185 591h60\"/><path d=\"M1605 458h87\"/></g><g transform=\"translate(180 0)\"><path d=\"M0 464H825\" stroke=\"#aa8c78\" stroke-width=\"8\"/><path d=\"M31 463Q390 192 786 463\" fill=\"none\" stroke=\"#c49377\" stroke-width=\"9\"/><path d=\"M80 430.1V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M130 401.2V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M180 377.1V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M230 357.8V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M280 343.2V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M330 333.4V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M380 328.3V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M430 327.9V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M480 332.4V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M530 341.5V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M580 355.5V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M630 374.2V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M680 397.6V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M730 425.8V460\" stroke=\"#b18f79\" stroke-width=\"2.5\"/><path d=\"M195 467v40m436-40v40\" stroke=\"#86776b\" stroke-width=\"14\"/></g><g transform=\"translate(1130 483)\"><path d=\"M0 0v-30h47V0Z\" fill=\"#947457\"/><path d=\"M-6-30h59l5-7-35-12-36 12Z\" fill=\"#465452\"/><path d=\"M8-17h10m9 0h10\" stroke=\"#d9b272\" stroke-width=\"9\"/><path d=\"M-2-4h51\" stroke=\"#ac8b62\" stroke-width=\"3\"/></g><g transform=\"translate(1181 483)\"><path d=\"M0 0v-30h47V0Z\" fill=\"#947457\"/><path d=\"M-6-30h59l5-7-35-12-36 12Z\" fill=\"#465452\"/><path d=\"M8-17h10m9 0h10\" stroke=\"#d9b272\" stroke-width=\"9\"/><path d=\"M-2-4h51\" stroke=\"#ac8b62\" stroke-width=\"3\"/></g><g transform=\"translate(1232 483)\"><path d=\"M0 0v-30h47V0Z\" fill=\"#947457\"/><path d=\"M-6-30h59l5-7-35-12-36 12Z\" fill=\"#465452\"/><path d=\"M8-17h10m9 0h10\" stroke=\"#d9b272\" stroke-width=\"9\"/><path d=\"M-2-4h51\" stroke=\"#ac8b62\" stroke-width=\"3\"/></g><g transform=\"translate(1283 483)\"><path d=\"M0 0v-30h47V0Z\" fill=\"#947457\"/><path d=\"M-6-30h59l5-7-35-12-36 12Z\" fill=\"#465452\"/><path d=\"M8-17h10m9 0h10\" stroke=\"#d9b272\" stroke-width=\"9\"/><path d=\"M-2-4h51\" stroke=\"#ac8b62\" stroke-width=\"3\"/></g><g transform=\"translate(1154 447)\"><path d=\"M0 0v-30h47V0Z\" fill=\"#947457\"/><path d=\"M-6-30h59l5-7-35-12-36 12Z\" fill=\"#465452\"/><path d=\"M8-17h10m9 0h10\" stroke=\"#d9b272\" stroke-width=\"9\"/><path d=\"M-2-4h51\" stroke=\"#ac8b62\" stroke-width=\"3\"/></g><g transform=\"translate(1205 447)\"><path d=\"M0 0v-30h47V0Z\" fill=\"#947457\"/><path d=\"M-6-30h59l5-7-35-12-36 12Z\" fill=\"#465452\"/><path d=\"M8-17h10m9 0h10\" stroke=\"#d9b272\" stroke-width=\"9\"/><path d=\"M-2-4h51\" stroke=\"#ac8b62\" stroke-width=\"3\"/></g><g transform=\"translate(1256 447)\"><path d=\"M0 0v-30h47V0Z\" fill=\"#947457\"/><path d=\"M-6-30h59l5-7-35-12-36 12Z\" fill=\"#465452\"/><path d=\"M8-17h10m9 0h10\" stroke=\"#d9b272\" stroke-width=\"9\"/><path d=\"M-2-4h51\" stroke=\"#ac8b62\" stroke-width=\"3\"/></g><g transform=\"translate(1178 411)\"><path d=\"M0 0v-30h47V0Z\" fill=\"#947457\"/><path d=\"M-6-30h59l5-7-35-12-36 12Z\" fill=\"#465452\"/><path d=\"M8-17h10m9 0h10\" stroke=\"#d9b272\" stroke-width=\"9\"/><path d=\"M-2-4h51\" stroke=\"#ac8b62\" stroke-width=\"3\"/></g><g transform=\"translate(1229 411)\"><path d=\"M0 0v-30h47V0Z\" fill=\"#947457\"/><path d=\"M-6-30h59l5-7-35-12-36 12Z\" fill=\"#465452\"/><path d=\"M8-17h10m9 0h10\" stroke=\"#d9b272\" stroke-width=\"9\"/><path d=\"M-2-4h51\" stroke=\"#ac8b62\" stroke-width=\"3\"/></g><g transform=\"translate(1202 375)\"><path d=\"M0 0v-30h47V0Z\" fill=\"#947457\"/><path d=\"M-6-30h59l5-7-35-12-36 12Z\" fill=\"#465452\"/><path d=\"M8-17h10m9 0h10\" stroke=\"#d9b272\" stroke-width=\"9\"/><path d=\"M-2-4h51\" stroke=\"#ac8b62\" stroke-width=\"3\"/></g><path d=\"M0 400H327Q371 400 390 415\" fill=\"none\" stroke=\"#a09887\" stroke-width=\"9\"/><path d=\"M28 407v43m104-43v43m116-43v43\" stroke=\"#7b8180\" stroke-width=\"6\"/><g transform=\"translate(93 0)\"><rect x=\"0\" y=\"379\" width=\"121\" height=\"18\" rx=\"5\" fill=\"#bdc9b2\"/><path d=\"M11 386h13m8 0h13m8 0h13m8 0h13m8 0h13\" stroke=\"#47666a\" stroke-width=\"7\"/><path d=\"M0 396h121\" stroke=\"#d7b076\" stroke-width=\"2\"/></g></g></defs><g data-pan=\"0.115\" data-period=\"1720\"><use href=\"#__P__mid\"/><use href=\"#__P__mid\" x=\"1720\"/></g><defs><g id=\"__P__near\"><g fill=\"none\" stroke=\"#7d8a84\" stroke-width=\"5\"><path d=\"M0 548h300m805 0h615M14 518v35m80-35v35m80-35v35m80-35v35m867-35v35m80-35v35m80-35v35m80-35v35m80-35v35m80-35v35m80-35v35\"/></g><path d=\"M86 549V367q0-15 22-15h17\" fill=\"none\" stroke=\"#657674\" stroke-width=\"6\"/><path d=\"M109 352h28\" stroke=\"#ead49a\" stroke-width=\"6\" stroke-linecap=\"round\"/><ellipse cx=\"122\" cy=\"365\" rx=\"30\" ry=\"36\" fill=\"#edd293\" opacity=\".035\"/><path d=\"M1328 549V367q0-15 22-15h17\" fill=\"none\" stroke=\"#657674\" stroke-width=\"6\"/><path d=\"M1351 352h28\" stroke=\"#ead49a\" stroke-width=\"6\" stroke-linecap=\"round\"/><ellipse cx=\"1364\" cy=\"365\" rx=\"30\" ry=\"36\" fill=\"#edd293\" opacity=\".035\"/></g></defs><g data-pan=\"0.25\" data-period=\"1720\"><use href=\"#__P__near\"/><use href=\"#__P__near\" x=\"1720\"/></g><path d=\"M0 539Q350 548 720 538t720 3V680H0Z\" fill=\"#abb099\"/><path d=\"M0 563H1440V680H0Z\" fill=\"#8d9285\"/><path d=\"M0 565H1440\" stroke=\"#abb099\" stroke-width=\"5\"/><path data-road=\"1\" d=\"M-160 651H1600\" stroke=\"#b9aa9a\" stroke-width=\"3\" stroke-dasharray=\"66 119\" opacity=\".64\"/>"}];
+
+const SCENE_MAP = new Map(SCENES.map(s=>[s.id,s]));
+
+const COMPONENTS = {"defs":"<linearGradient id=\"wing-gradient\" x2=\".7\" y2=\"1\">\n              <stop stop-color=\"#f4f3e5\"/>\n              <stop offset=\"1\" stop-color=\"#d8ded0\"/>\n            </linearGradient><linearGradient id=\"feather-gradient\" x1=\"0\" y1=\"0\" x2=\".75\" y2=\"1\">\n              <stop stop-color=\"#fffef0\"/>\n              <stop offset=\".7\" stop-color=\"#f8f5e6\"/>\n              <stop offset=\"1\" stop-color=\"#e4e6d5\"/>\n            </linearGradient><g id=\"spokes\" fill=\"none\" stroke=\"#a9b8a8\" stroke-width=\"1.65\">\n              <path d=\"M-89 0H89M0-89V89M-62.93-62.93 62.93 62.93M-62.93 62.93 62.93-62.93M-82.23-34.06 82.23 34.06M-82.23 34.06 82.23-34.06M-34.06-82.23 34.06 82.23M-34.06 82.23 34.06-82.23\"/>\n              <circle r=\"90\" stroke=\"#7b9588\" stroke-width=\"2\"/>\n              <rect x=\"-3.5\" y=\"-75\" width=\"7\" height=\"20\" rx=\"2.5\" fill=\"#dfa161\" stroke=\"#f7e7bf\" stroke-width=\"1\"/>\n              <rect x=\"-3.5\" y=\"55\" width=\"7\" height=\"20\" rx=\"2.5\" fill=\"#dfa161\" stroke=\"#f7e7bf\" stroke-width=\"1\"/>\n            </g><g id=\"far-foot-shape\">\n              <rect x=\"-17\" y=\"2\" width=\"35\" height=\"7\" rx=\"3\" fill=\"#344940\"/>\n              <path d=\"M-15-9C-6-14 0-10 4-7L17-7 25-1 14 3 6 1-3 4-12 1-20 0Z\" fill=\"#ce9854\" stroke=\"#455142\" stroke-width=\"2.7\" stroke-linejoin=\"round\"/>\n              <path d=\"m5-5 9 6M-3-5 1 2\" stroke=\"#a37342\" stroke-width=\"1.5\" fill=\"none\"/>\n            </g><g id=\"near-foot-shape\">\n              <rect x=\"-18\" y=\"2\" width=\"37\" height=\"7\" rx=\"3\" fill=\"#344940\"/>\n              <path d=\"M-15-9C-6-14 0-10 4-7L17-7 25-1 14 3 6 1-3 4-12 1-20 0Z\" fill=\"#efb55e\" stroke=\"#455142\" stroke-width=\"2.7\" stroke-linejoin=\"round\"/>\n              <path d=\"m5-5 9 6M-3-5 1 2\" stroke=\"#c58e43\" stroke-width=\"1.5\" fill=\"none\"/>\n            </g><g id=\"tire\">\n              <circle r=\"103\" fill=\"#edf0d4\" fill-opacity=\".09\" stroke=\"#354a44\" stroke-width=\"13\"/>\n              <circle r=\"99\" fill=\"none\" stroke=\"#eee4c8\" stroke-width=\"5\"/>\n              <circle r=\"94\" fill=\"none\" stroke=\"#647f70\" stroke-width=\"1.5\"/>\n            </g><linearGradient id=\"pouch-gradient\" x2=\"0\" y2=\"1\">\n              <stop stop-color=\"#f7ca75\"/>\n              <stop offset=\"1\" stop-color=\"#e9ac57\"/>\n            </linearGradient>","rider":"<g id=\"cycle-bob\">\n            <g transform=\"translate(494 610)\">\n              <use href=\"#tire\"/>\n              <g id=\"rear-wheel-spin\"><use href=\"#spokes\"/></g>\n              <circle r=\"9\" fill=\"#d3c9a9\" stroke=\"#405b4d\" stroke-width=\"4\"/>\n            </g>\n            <g transform=\"translate(886 610)\">\n              <use href=\"#tire\"/>\n              <g id=\"front-wheel-spin\"><use href=\"#spokes\"/></g>\n              <circle r=\"8\" fill=\"#d3c9a9\" stroke=\"#405b4d\" stroke-width=\"4\"/>\n            </g>\n\n            <g stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\">\n              <path id=\"far-leg-outline\" d=\"M625 437 699 486 648 618\" stroke=\"#455142\" stroke-width=\"13\"/>\n              <path id=\"far-leg-fill\" d=\"M625 437 699 486 648 618\" stroke=\"#c99959\" stroke-width=\"8\"/>\n              <path id=\"far-thigh\" d=\"M625 437 651 455\" stroke=\"#dedfc8\" stroke-width=\"14\"/>\n            </g>\n            <path id=\"far-crank\" d=\"M676 592 648 618\" fill=\"none\" stroke=\"#62746a\" stroke-width=\"8\" stroke-linecap=\"round\"/>\n            <g id=\"far-foot\" transform=\"translate(648 618)\"><use href=\"#far-foot-shape\"/></g>\n\n            <g class=\"fine\">\n              <path d=\"M389 563A116 116 0 0 1 599 562M781 563A116 116 0 0 1 991 562\" stroke=\"#597366\" stroke-width=\"9\"/>\n              <path d=\"M389 562A116 116 0 0 1 599 561M781 562A116 116 0 0 1 991 561\" stroke=\"#cdd4b6\" stroke-width=\"5\"/>\n              <path d=\"M433 501 494 610 559 501M423 501H574\" stroke=\"#6a8471\" stroke-width=\"4\"/>\n            </g>\n\n            <!-- 后座野餐包。 -->\n            <g class=\"outline\">\n              <path d=\"M449 493 441 461Q440 451 450 449Q460 448 462 460L470 493\" fill=\"#e6bd7c\"/>\n              <path d=\"m448 461 10-3m-7 12 10-3m-7 12 10-3\" fill=\"none\" stroke=\"#bd945e\" stroke-width=\"2.5\"/>\n              <path d=\"M480 496Q488 461 507 458Q511 478 480 496Z\" fill=\"#8faa79\"/>\n              <path d=\"M479 493Q464 466 474 457Q492 470 479 493Z\" fill=\"#a8ba8b\"/>\n              <rect x=\"420\" y=\"490\" width=\"112\" height=\"62\" rx=\"10\" fill=\"#cfae79\"/>\n              <path d=\"M425 504H528M425 516H528M425 528H528M437 493V548M452 493V551M467 493V551M482 493V551M497 493V550M512 493V550\" stroke=\"#b99968\" stroke-width=\"2\"/>\n              <path d=\"M425 490H470L450 515Z\" fill=\"#e3ebe0\" stroke-width=\"2\"/>\n              <path d=\"M439 491 451 508M453 491 460 498\" stroke=\"#839e8b\" stroke-width=\"2\"/>\n              <rect x=\"417\" y=\"486\" width=\"118\" height=\"11\" rx=\"5\" fill=\"#e1c08a\"/>\n              <path d=\"M504 489v62\" stroke=\"#9e7e56\" stroke-width=\"7\"/>\n              <rect x=\"498\" y=\"517\" width=\"12\" height=\"12\" rx=\"2\" fill=\"#d3b079\" stroke-width=\"2\"/>\n            </g>\n\n            <!-- 钢管轮廓与高光分开绘制，车架三角形结构清晰可见。 -->\n            <g class=\"fine\">\n              <path d=\"M494 610 618 469 676 592 494 610M618 469Q711 458 802 467L824 522 676 592M802 467 886 610\" stroke=\"#3d5b4d\" stroke-width=\"15\"/>\n              <path d=\"M494 610 618 469 676 592 494 610M618 469Q711 458 802 467L824 522 676 592M802 467 886 610\" stroke=\"#7faba0\" stroke-width=\"9\"/>\n              <path d=\"M627 466Q710 457 791 465M503 606 613 479M686 584 813 525\" stroke=\"#b9d1b6\" stroke-width=\"2.2\"/>\n              <path d=\"m618 469-13-31M802 467l-14-36q-2-8 8-10l36-8q23-5 25 7 1 13-18 14\" stroke=\"#3d5145\" stroke-width=\"9\"/>\n              <path d=\"m619 466-12-27M802 464l-13-33q-1-7 8-9l36-8\" stroke=\"#bac5a9\" stroke-width=\"4\"/>\n              <path d=\"M840 428q-16 14-8 48t-9 56\" stroke=\"#647769\" stroke-width=\"2\"/>\n              <path d=\"M837 417q15-4 17 6t-14 10\" stroke=\"#916b48\" stroke-width=\"10\"/>\n            </g>\n            <path d=\"M568 429Q586 424 606 427L632 433Q640 436 633 443L582 444Q567 443 568 429Z\" fill=\"#826344\" stroke=\"#3b4c3f\" stroke-width=\"3\"/>\n            <path d=\"M578 431Q599 429 624 436\" fill=\"none\" stroke=\"#af8960\" stroke-width=\"2.5\" stroke-linecap=\"round\"/>\n            <path d=\"M832 410a9 9 0 0 1 18 0Z\" fill=\"#e0b870\" stroke=\"#485b49\" stroke-width=\"2.5\"/>\n            <path d=\"m843 400 4-4\" stroke=\"#485b49\" stroke-width=\"2.5\" stroke-linecap=\"round\"/>\n\n            <!-- 水壶固定在下管：安装点、支架和壶体共用坐标系，随 cycle-bob 一起运动。 -->\n            <g id=\"bottle-mount\" transform=\"translate(764 550.378378) rotate(64.687116)\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n              <title>固定在车架下管水壶架中的水壶</title>\n              <!-- 原点位于下管中心线；两个固定箍直接环抱车管。 -->\n              <g fill=\"none\">\n                <path d=\"M-7-13H7M-7 13H7\" stroke=\"#405d4e\" stroke-width=\"5\"/>\n                <path d=\"M-6-13H6M-6 13H6\" stroke=\"#bccbb0\" stroke-width=\"2\"/>\n                <!-- 连接臂、背板和底托先绘制，位于壶体后方。 -->\n                <path d=\"M0-13H-7M0 13H-7M-7-17V18Q-7 22-12 22H-33Q-39 22-39 16V6\" stroke=\"#405d4e\" stroke-width=\"4\"/>\n                <path d=\"M0-13H-7M0 13H-7M-7-17V18Q-7 22-12 22H-33Q-39 22-39 16V6\" stroke=\"#b5c7ac\" stroke-width=\"1.5\"/>\n              </g>\n              <g fill=\"#dce0c3\" stroke=\"#405d4e\" stroke-width=\"1.3\">\n                <circle cx=\"0\" cy=\"-13\" r=\"2.7\"/>\n                <circle cx=\"0\" cy=\"13\" r=\"2.7\"/>\n              </g>\n              <path d=\"M-1-13H1M-1 13H1\" fill=\"none\" stroke=\"#6d8069\" stroke-width=\"1\"/>\n\n              <!-- 壶体位于下管内侧 23 个 SVG 单位，长轴与下管平行。 -->\n              <g id=\"water-bottle\" transform=\"translate(-23 0)\" stroke=\"#354a42\" stroke-width=\"2.3\">\n                <path d=\"M-9-24H9V-18L13-13V13Q13 18 8 18H-8Q-13 18-13 13V-13L-9-18Z\" fill=\"#f4ecd1\"/>\n                <path d=\"M-12-6H12V5H-12Z\" fill=\"#df9d6c\" stroke=\"none\"/>\n                <path d=\"M-8-25H8\" fill=\"none\" stroke=\"#63897a\" stroke-width=\"5\"/>\n                <path d=\"M-7-15V-10M-7 9V12\" fill=\"none\" stroke=\"#fff9e8\" stroke-width=\"2\"/>\n              </g>\n\n              <!-- 前侧固定带跨过壶身，与背板、底托闭合连接。 -->\n              <path d=\"M-7 5H-10Q-23 10-36 5Q-39 4-39 9\" fill=\"none\" stroke=\"#405d4e\" stroke-width=\"4\"/>\n              <path d=\"M-7 5H-10Q-23 10-36 5Q-39 4-39 9\" fill=\"none\" stroke=\"#b5c7ac\" stroke-width=\"1.5\"/>\n              <path d=\"M-38 16Q-38 20-33 20H-13Q-9 20-9 16\" fill=\"none\" stroke=\"#405d4e\" stroke-width=\"3.2\"/>\n            </g>\n\n            <!-- 传动链条。 -->\n            <path d=\"M493 598 674 570A22 22 0 0 1 679 614L496 622A12 12 0 0 1 493 598Z\" fill=\"none\" stroke=\"#5f6e5e\" stroke-width=\"4.5\"/>\n            <path id=\"chain-links\" d=\"M493 598 674 570A22 22 0 0 1 679 614L496 622A12 12 0 0 1 493 598Z\" fill=\"none\" stroke=\"#d4d0ad\" stroke-width=\"1.5\" stroke-dasharray=\"2 4\"/>\n            <g transform=\"translate(676 592)\">\n              <circle r=\"25\" fill=\"#526a57\" stroke=\"#394e40\" stroke-width=\"2\"/>\n              <g id=\"chainring-spin\" fill=\"none\" stroke=\"#c9ceb0\" stroke-width=\"3\">\n                <circle r=\"17\"/>\n                <path d=\"M0-17V17M-17 0H17M-12-12 12 12M-12 12 12-12\"/>\n              </g>\n            </g>\n            <path id=\"near-crank\" d=\"M676 592 704 566\" fill=\"none\" stroke=\"#354c40\" stroke-width=\"10\" stroke-linecap=\"round\"/>\n            <path id=\"near-crank-highlight\" d=\"M676 592 704 566\" fill=\"none\" stroke=\"#b9c7ad\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n            <circle cx=\"676\" cy=\"592\" r=\"7\" fill=\"#dae0be\" stroke=\"#405947\" stroke-width=\"2.5\"/>\n\n            <g fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n              <path id=\"near-leg-outline\" d=\"M638 433 734 473 701 558\" stroke=\"#435140\" stroke-width=\"14\"/>\n              <path id=\"near-leg-fill\" d=\"M638 433 734 473 701 558\" stroke=\"#edb360\" stroke-width=\"9\"/>\n              <path id=\"near-thigh\" d=\"M638 433 672 447\" stroke=\"#f4f1de\" stroke-width=\"16\"/>\n            </g>\n            <g id=\"near-foot\" transform=\"translate(704 566)\"><use href=\"#near-foot-shape\"/></g>\n\n            <!-- 鹈鹕上半身：长喙、喉囊、弯颈与宽大翅膀。 -->\n            <g id=\"pelican-upper\">\n              <path id=\"scarf-back\" d=\"M739 334C695 339 681 355 641 345L650 360 637 370C687 374 715 353 746 346Z\" fill=\"#c97c50\" stroke=\"#765b40\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/>\n              <path id=\"scarf-front\" d=\"M744 323C699 306 665 324 618 312L598 306 607 327 589 335C650 342 701 341 748 340Z\" fill=\"#df9567\" stroke=\"#765b40\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/>\n              <path id=\"scarf-stripe\" d=\"M607 321C650 335 697 328 739 333\" fill=\"none\" stroke=\"#efb489\" stroke-width=\"3\" opacity=\".85\"/>\n\n              <path d=\"M474 363C513 355 536 344 562 337C607 318 650 335 685 362C714 349 723 323 723 293C723 255 731 220 765 213C797 205 824 222 829 247C834 273 815 292 790 292C778 293 777 309 779 327C784 362 762 399 727 417C687 442 638 454 588 438C546 425 529 401 505 394L471 382 496 374Z\" fill=\"url(#feather-gradient)\" class=\"outline\"/>\n              <path d=\"M506 375q30 4 47 17M522 370q30 5 46 19M548 401q17 16 41 21M589 429q17 5 31 4\" class=\"fine\" stroke=\"#c3cfc1\" stroke-width=\"2.5\"/>\n              <path d=\"M701 387C736 369 747 344 744 310\" class=\"fine\" stroke=\"#d4decf\" stroke-width=\"7\" opacity=\".65\"/>\n\n              <!-- 喉囊位于长喙下面，不以鸭嘴代替鹈鹕的外形。 -->\n              <path d=\"M816 263 1047 274C1024 287 1004 296 975 304C913 331 850 326 829 299C820 287 817 275 816 263Z\" fill=\"url(#pouch-gradient)\" class=\"outline\"/>\n              <path d=\"M839 280C857 310 913 322 968 302\" class=\"fine\" stroke=\"#f9d691\" stroke-width=\"4\"/>\n              <path d=\"M873 303q-5-7-7-14m29 19q-4-6-6-12m28 12-4-9\" class=\"fine\" stroke=\"#d79d51\" stroke-width=\"1.7\" opacity=\".6\"/>\n              <path d=\"M822 246C894 247 989 256 1044 269Q1056 272 1051 277L824 270Q812 263 822 246Z\" fill=\"#edb55f\" class=\"outline\"/>\n              <path d=\"M832 253C905 255 984 263 1031 271\" class=\"fine\" stroke=\"#f8d28a\" stroke-width=\"3\"/>\n              <path d=\"m840 258 11 1\" class=\"fine\" stroke=\"#926e3c\" stroke-width=\"2.5\"/>\n              <path d=\"m1045 270 6 7-7 2\" class=\"fine\" stroke=\"#956d3c\" stroke-width=\"2\"/>\n\n              <path d=\"M789 240q9-5 17 0\" class=\"fine\" stroke=\"#69715b\" stroke-width=\"2.2\"/>\n              <ellipse cx=\"800\" cy=\"266\" rx=\"11\" ry=\"6\" fill=\"#efd9b5\" opacity=\".67\"/>\n              <g id=\"pelican-eye\" transform=\"translate(801 251)\">\n                <ellipse rx=\"5.1\" ry=\"6.3\" fill=\"#304139\"/>\n                <circle cx=\"1.5\" cy=\"-2\" r=\"1.5\" fill=\"#fffcee\"/>\n              </g>\n\n              <!-- 头盔、下颌带与围巾领口。 -->\n              <path d=\"M738 238 768 281 801 238\" class=\"fine\" stroke=\"#7b8b74\" stroke-width=\"4\"/>\n              <rect x=\"763\" y=\"274\" width=\"11\" height=\"8\" rx=\"2\" transform=\"rotate(12 768 278)\" fill=\"#8ca18a\" stroke=\"#4d6050\" stroke-width=\"1.5\"/>\n              <path d=\"M726 240C721 212 740 184 774 183C809 181 831 204 836 234L805 239C785 226 753 234 726 240Z\" fill=\"#82aa96\" class=\"outline\"/>\n              <path d=\"M733 220C744 192 774 186 793 193\" class=\"fine\" stroke=\"#b6ccac\" stroke-width=\"5\"/>\n              <path d=\"M747 220q1-12 13-20M770 215q3-13 12-17M791 216q1-10 5-14M809 223q0-8-4-15\" class=\"fine\" stroke=\"#527966\" stroke-width=\"5\"/>\n              <path d=\"M726 240q52-12 80 0l30-6\" class=\"fine\" stroke=\"#456651\" stroke-width=\"5\"/>\n              <path d=\"M765 190q-3-6 4-6h8q6 0 3 6\" fill=\"#b5c9aa\"/>\n              <path d=\"M726 320Q747 330 778 321L782 336Q758 348 723 337Z\" fill=\"#df9567\" class=\"outline\"/>\n              <path d=\"M729 326q22 9 47 0\" class=\"fine\" stroke=\"#efb78d\" stroke-width=\"2.5\"/>\n              <path d=\"M727 333q-17 3-18 14 16 2 24-9\" fill=\"#cf8255\" stroke=\"#745c44\" stroke-width=\"2.5\"/>\n\n              <!-- 翅膀向前搭住车把，羽尖包住握把。 -->\n              <path d=\"M608 362C646 333 684 341 710 369C735 389 782 397 823 412C838 409 848 412 854 421C848 431 837 437 824 433C795 431 778 422 751 420C709 424 680 427 645 408C626 397 613 381 608 362Z\" fill=\"url(#wing-gradient)\" class=\"outline\"/>\n              <path d=\"M631 360C653 357 673 370 684 388S717 409 746 410M636 375q24 21 51 23M645 391q22 16 47 15M801 419q18 1 31 7M817 415q13 0 22 7\" class=\"fine\" stroke=\"#a5b7a4\" stroke-width=\"2.7\"/>\n              <path d=\"M650 352q26 1 44 19\" class=\"fine\" stroke=\"#fffbed\" stroke-width=\"3\"/>\n            </g>\n          </g>","rest":"<g id=\"rest-scene\">\n            <ellipse cx=\"712\" cy=\"725\" rx=\"474\" ry=\"15\" fill=\"var(--ground-shadow)\" opacity=\".13\"/>\n            <g id=\"parked-cycle\"><g transform=\"translate(-90 300) scale(.58)\">\n            <g transform=\"translate(494 610)\">\n              <use href=\"#tire\"/>\n              <g><use href=\"#spokes\"/></g>\n              <circle r=\"9\" fill=\"#d3c9a9\" stroke=\"#405b4d\" stroke-width=\"4\"/>\n            </g>\n            <g transform=\"translate(886 610)\">\n              <use href=\"#tire\"/>\n              <g><use href=\"#spokes\"/></g>\n              <circle r=\"8\" fill=\"#d3c9a9\" stroke=\"#405b4d\" stroke-width=\"4\"/>\n            </g>\n\n            <g stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\">\n              </g>\n            <path d=\"M676 592 648 618\" fill=\"none\" stroke=\"#62746a\" stroke-width=\"8\" stroke-linecap=\"round\"/>\n            <g class=\"fine\">\n              <path d=\"M389 563A116 116 0 0 1 599 562M781 563A116 116 0 0 1 991 562\" stroke=\"#597366\" stroke-width=\"9\"/>\n              <path d=\"M389 562A116 116 0 0 1 599 561M781 562A116 116 0 0 1 991 561\" stroke=\"#cdd4b6\" stroke-width=\"5\"/>\n              <path d=\"M433 501 494 610 559 501M423 501H574\" stroke=\"#6a8471\" stroke-width=\"4\"/>\n            </g>\n\n            <!-- 后座野餐包。 -->\n            <g class=\"outline\">\n              <path d=\"M449 493 441 461Q440 451 450 449Q460 448 462 460L470 493\" fill=\"#e6bd7c\"/>\n              <path d=\"m448 461 10-3m-7 12 10-3m-7 12 10-3\" fill=\"none\" stroke=\"#bd945e\" stroke-width=\"2.5\"/>\n              <path d=\"M480 496Q488 461 507 458Q511 478 480 496Z\" fill=\"#8faa79\"/>\n              <path d=\"M479 493Q464 466 474 457Q492 470 479 493Z\" fill=\"#a8ba8b\"/>\n              <rect x=\"420\" y=\"490\" width=\"112\" height=\"62\" rx=\"10\" fill=\"#cfae79\"/>\n              <path d=\"M425 504H528M425 516H528M425 528H528M437 493V548M452 493V551M467 493V551M482 493V551M497 493V550M512 493V550\" stroke=\"#b99968\" stroke-width=\"2\"/>\n              <path d=\"M425 490H470L450 515Z\" fill=\"#e3ebe0\" stroke-width=\"2\"/>\n              <path d=\"M439 491 451 508M453 491 460 498\" stroke=\"#839e8b\" stroke-width=\"2\"/>\n              <rect x=\"417\" y=\"486\" width=\"118\" height=\"11\" rx=\"5\" fill=\"#e1c08a\"/>\n              <path d=\"M504 489v62\" stroke=\"#9e7e56\" stroke-width=\"7\"/>\n              <rect x=\"498\" y=\"517\" width=\"12\" height=\"12\" rx=\"2\" fill=\"#d3b079\" stroke-width=\"2\"/>\n            </g>\n\n            <!-- 钢管轮廓与高光分开绘制，车架三角形结构清晰可见。 -->\n            <g class=\"fine\">\n              <path d=\"M494 610 618 469 676 592 494 610M618 469Q711 458 802 467L824 522 676 592M802 467 886 610\" stroke=\"#3d5b4d\" stroke-width=\"15\"/>\n              <path d=\"M494 610 618 469 676 592 494 610M618 469Q711 458 802 467L824 522 676 592M802 467 886 610\" stroke=\"#7faba0\" stroke-width=\"9\"/>\n              <path d=\"M627 466Q710 457 791 465M503 606 613 479M686 584 813 525\" stroke=\"#b9d1b6\" stroke-width=\"2.2\"/>\n              <path d=\"m618 469-13-31M802 467l-14-36q-2-8 8-10l36-8q23-5 25 7 1 13-18 14\" stroke=\"#3d5145\" stroke-width=\"9\"/>\n              <path d=\"m619 466-12-27M802 464l-13-33q-1-7 8-9l36-8\" stroke=\"#bac5a9\" stroke-width=\"4\"/>\n              <path d=\"M840 428q-16 14-8 48t-9 56\" stroke=\"#647769\" stroke-width=\"2\"/>\n              <path d=\"M837 417q15-4 17 6t-14 10\" stroke=\"#916b48\" stroke-width=\"10\"/>\n            </g>\n            <path d=\"M568 429Q586 424 606 427L632 433Q640 436 633 443L582 444Q567 443 568 429Z\" fill=\"#826344\" stroke=\"#3b4c3f\" stroke-width=\"3\"/>\n            <path d=\"M578 431Q599 429 624 436\" fill=\"none\" stroke=\"#af8960\" stroke-width=\"2.5\" stroke-linecap=\"round\"/>\n            <path d=\"M832 410a9 9 0 0 1 18 0Z\" fill=\"#e0b870\" stroke=\"#485b49\" stroke-width=\"2.5\"/>\n            <path d=\"m843 400 4-4\" stroke=\"#485b49\" stroke-width=\"2.5\" stroke-linecap=\"round\"/>\n\n            <!-- 水壶固定在下管：安装点、支架和壶体共用坐标系，随 cycle-bob 一起运动。 -->\n            <g transform=\"translate(764 550.378378) rotate(64.687116)\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n              <title>固定在车架下管水壶架中的水壶</title>\n              <!-- 原点位于下管中心线；两个固定箍直接环抱车管。 -->\n              <g fill=\"none\">\n                <path d=\"M-7-13H7M-7 13H7\" stroke=\"#405d4e\" stroke-width=\"5\"/>\n                <path d=\"M-6-13H6M-6 13H6\" stroke=\"#bccbb0\" stroke-width=\"2\"/>\n                <!-- 连接臂、背板和底托先绘制，位于壶体后方。 -->\n                <path d=\"M0-13H-7M0 13H-7M-7-17V18Q-7 22-12 22H-33Q-39 22-39 16V6\" stroke=\"#405d4e\" stroke-width=\"4\"/>\n                <path d=\"M0-13H-7M0 13H-7M-7-17V18Q-7 22-12 22H-33Q-39 22-39 16V6\" stroke=\"#b5c7ac\" stroke-width=\"1.5\"/>\n              </g>\n              <g fill=\"#dce0c3\" stroke=\"#405d4e\" stroke-width=\"1.3\">\n                <circle cx=\"0\" cy=\"-13\" r=\"2.7\"/>\n                <circle cx=\"0\" cy=\"13\" r=\"2.7\"/>\n              </g>\n              <path d=\"M-1-13H1M-1 13H1\" fill=\"none\" stroke=\"#6d8069\" stroke-width=\"1\"/>\n\n              <!-- 壶体位于下管内侧 23 个 SVG 单位，长轴与下管平行。 -->\n              <g transform=\"translate(-23 0)\" stroke=\"#354a42\" stroke-width=\"2.3\">\n                <path d=\"M-9-24H9V-18L13-13V13Q13 18 8 18H-8Q-13 18-13 13V-13L-9-18Z\" fill=\"#f4ecd1\"/>\n                <path d=\"M-12-6H12V5H-12Z\" fill=\"#df9d6c\" stroke=\"none\"/>\n                <path d=\"M-8-25H8\" fill=\"none\" stroke=\"#63897a\" stroke-width=\"5\"/>\n                <path d=\"M-7-15V-10M-7 9V12\" fill=\"none\" stroke=\"#fff9e8\" stroke-width=\"2\"/>\n              </g>\n\n              <!-- 前侧固定带跨过壶身，与背板、底托闭合连接。 -->\n              <path d=\"M-7 5H-10Q-23 10-36 5Q-39 4-39 9\" fill=\"none\" stroke=\"#405d4e\" stroke-width=\"4\"/>\n              <path d=\"M-7 5H-10Q-23 10-36 5Q-39 4-39 9\" fill=\"none\" stroke=\"#b5c7ac\" stroke-width=\"1.5\"/>\n              <path d=\"M-38 16Q-38 20-33 20H-13Q-9 20-9 16\" fill=\"none\" stroke=\"#405d4e\" stroke-width=\"3.2\"/>\n            </g>\n\n            <!-- 传动链条。 -->\n            <path d=\"M493 598 674 570A22 22 0 0 1 679 614L496 622A12 12 0 0 1 493 598Z\" fill=\"none\" stroke=\"#5f6e5e\" stroke-width=\"4.5\"/>\n            <path d=\"M493 598 674 570A22 22 0 0 1 679 614L496 622A12 12 0 0 1 493 598Z\" fill=\"none\" stroke=\"#d4d0ad\" stroke-width=\"1.5\" stroke-dasharray=\"2 4\"/>\n            <g transform=\"translate(676 592)\">\n              <circle r=\"25\" fill=\"#526a57\" stroke=\"#394e40\" stroke-width=\"2\"/>\n              <g fill=\"none\" stroke=\"#c9ceb0\" stroke-width=\"3\">\n                <circle r=\"17\"/>\n                <path d=\"M0-17V17M-17 0H17M-12-12 12 12M-12 12 12-12\"/>\n              </g>\n            </g>\n            <path d=\"M676 592 704 566\" fill=\"none\" stroke=\"#354c40\" stroke-width=\"10\" stroke-linecap=\"round\"/>\n            <path d=\"M676 592 704 566\" fill=\"none\" stroke=\"#b9c7ad\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n            <circle cx=\"676\" cy=\"592\" r=\"7\" fill=\"#dae0be\" stroke=\"#405947\" stroke-width=\"2.5\"/>\n\n            <g fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n              </g>\n            <!-- 鹈鹕上半身：长喙、喉囊、弯颈与宽大翅膀。 -->\n            </g>\n\n          </g>\n            <path d=\"M316 649 288 710h39\" fill=\"none\" stroke=\"#4e685b\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n            <g stroke=\"#536655\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n              <path d=\"M677 570v141m180-141v141M667 520h207v24H667ZM661 557h218v23H661Z\" fill=\"#b79d73\" stroke-width=\"5\"/>\n              <path d=\"M651 615h240v15H651Z\" fill=\"#c9ae7c\" stroke-width=\"4\"/>\n              <path d=\"M678 631 666 714m195-83 14 83\" fill=\"none\" stroke-width=\"8\"/>\n            </g>\n            <g class=\"rest-breathe\" stroke=\"#354a42\" stroke-width=\"3.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n              <path d=\"M764 584q-35 19-20 48l-11 70m61-118q-10 40 17 53l14 66\" fill=\"none\" stroke=\"#d5a15f\" stroke-width=\"11\"/>\n              <path d=\"M736 696q-20 1-31 14l51-1-12-12m84-1q-10 1-10 12l53 1q-13-16-37-12\" fill=\"#e4b56e\"/>\n              <path d=\"M684 531q-35 26-49 29l60 13\" fill=\"#dce2cb\"/>\n              <path d=\"M705 578c-64-73-19-145 51-133 64 4 61-32 57-76-4-40 11-67 46-67 38 0 53 39 24 66-34 31-1 92 7 126 15 69-52 107-121 98-34-1-51-7-64-14Z\" fill=\"#f2eed9\"/>\n              <path d=\"M721 475q47-21 93 40 7 12 0 26-47 12-94-39m4-10q31 21 51 28m-42-18q22 19 42 25\" fill=\"#dfe4cf\" stroke=\"#a8b7a0\"/>\n              <path d=\"M879 337q78-5 153 27l-146 11q-26-13-7-38Z\" fill=\"#e7aa59\"/>\n              <path d=\"M891 361 1032 364q-31 35-95 42-58-1-51-31Z\" fill=\"#e5c07b\"/>\n              <path d=\"M896 370q32 17 68 8\" fill=\"none\" stroke=\"#c99755\" stroke-width=\"2\"/>\n              <circle cx=\"866\" cy=\"333\" r=\"5\" fill=\"#304139\" stroke=\"none\"/><circle cx=\"867\" cy=\"331\" r=\"1.5\" fill=\"#fffcee\" stroke=\"none\"/>\n              <path d=\"M826 325q-5-35 30-42 40-3 49 34l-24 6q-23-13-55 2Z\" fill=\"#82aa96\"/>\n              <path d=\"M838 313q-1-12 12-19m7 17q1-11 8-16m8 16q0-8 1-13\" fill=\"none\" stroke=\"#527966\" stroke-width=\"4\"/>\n              <path d=\"M815 423q22 12 46 0l6 16q-28 17-53-2Z\" fill=\"#df9567\"/>\n              <path d=\"M817 436q-31 9-50 2l3 18 40 3 23-20\" fill=\"#df9567\"/>\n            </g>\n            <g stroke=\"#536655\" stroke-width=\"4\" stroke-linejoin=\"round\" stroke-linecap=\"round\">\n              <ellipse cx=\"1010\" cy=\"621\" rx=\"79\" ry=\"12\" fill=\"#d3b988\"/>\n              <path d=\"M972 631 963 714m85-83 13 83\" fill=\"none\" stroke-width=\"7\"/>\n              <path d=\"M980 567h38v44q-20 10-38-1Z\" fill=\"#f5ecd3\"/>\n              <path d=\"M1018 577q23-3 20 14-2 14-20 12\" fill=\"none\"/>\n              <ellipse cx=\"999\" cy=\"567\" rx=\"19\" ry=\"4\" fill=\"#c1d6c7\"/>\n              <path d=\"M1124 594v119\" fill=\"none\" stroke-width=\"7\"/>\n              <path d=\"M1075 551h115l17 25-17 23h-115Z\" fill=\"#e6d6b1\"/>\n            </g>\n            <text id=\"rest-sign-label\" x=\"1132\" y=\"581\" fill=\"#536655\" font-size=\"17\" text-anchor=\"middle\" font-family=\"'PingFang SC','Microsoft YaHei',sans-serif\" letter-spacing=\"2\">休息</text>\n          </g>"};
+
+      const RIDE_SCORES = {
+        coast: {
+          day: '潮汐明信片', night: '月光海岸', bpm: 88, lead: 'pluck', color: '轻快拨弦',
+          chords: [[48,52,55,59],[43,50,55,59],[45,52,55,60],[41,48,52,57],[48,52,55,59],[40,47,50,55],[41,48,52,57],[43,50,55,59]],
+          melody: [
+            [[0,76,1],[1,79,1],[2,81,2],[4,79,1],[5,76,1],[6,74,2]],
+            [[0,74,2],[2,79,1],[3,77,1],[4,74,2],[6,71,1]],
+            [[0,72,2],[2,76,1],[3,79,1],[4,81,2],[6,79,2]],
+            [[0,77,2],[2,76,1],[3,72,1],[4,69,2],[7,72,1]],
+            [[0,76,1],[1,79,1],[2,84,2],[4,83,1],[5,79,1],[6,76,2]],
+            [[0,74,2],[2,76,1],[3,79,1],[4,76,2],[6,71,2]],
+            [[0,72,1],[1,74,1],[2,77,2],[4,76,1],[5,72,1],[6,69,2]],
+            [[0,71,2],[2,74,1],[3,79,1],[4,76,2],[6,74,1]]
+          ]
+        },
+        forest: {
+          day: '松针上的光', night: '松林夜话', bpm: 80, lead: 'marimba', color: '木琴与笛音',
+          chords: [[41,48,52,57],[48,52,55,59],[50,53,57,60],[43,50,55,59],[45,52,55,60],[40,47,52,55],[41,48,52,57],[43,50,55,60]],
+          melody: [
+            [[0,77,2],[3,81,1],[4,79,2],[6,76,2]],
+            [[0,76,2],[2,79,1],[4,74,1],[5,72,3]],
+            [[0,74,2],[2,77,1],[3,81,1],[5,77,2]],
+            [[0,79,2],[3,74,1],[4,71,2],[6,74,2]],
+            [[0,76,2],[2,81,2],[5,79,1],[6,76,2]],
+            [[0,79,2],[2,76,2],[5,74,1],[6,71,2]],
+            [[0,72,2],[2,77,2],[4,76,1],[6,72,2]],
+            [[0,74,2],[2,79,1],[4,77,1],[5,74,3]]
+          ]
+        },
+        mountain: {
+          day: '山谷来信', night: '星河慢慢', bpm: 72, lead: 'piano', color: '舒缓钢琴',
+          chords: [[48,52,55,59],[43,50,55,59],[45,52,55,60],[40,47,50,55],[41,48,52,57],[48,52,55,59],[50,53,57,60],[43,50,55,59]],
+          melody: [
+            [[0,76,3],[4,79,2],[6,83,2]],
+            [[0,81,2],[2,79,2],[5,74,3]],
+            [[0,76,3],[4,72,2],[6,79,2]],
+            [[0,78,2],[2,76,2],[5,71,3]],
+            [[0,72,3],[4,77,2],[6,81,2]],
+            [[0,79,3],[4,76,2],[6,72,2]],
+            [[0,74,2],[2,77,2],[4,76,2],[6,74,2]],
+            [[0,71,3],[4,74,2],[6,79,2]]
+          ]
+        },
+        city: {
+          day: '街角半杯咖啡', night: '末班车之后', bpm: 86, lead: 'epiano', color: '轻爵士电钢琴',
+          chords: [[48,52,55,59],[45,48,52,55],[50,53,57,60],[43,47,50,53],[40,43,47,50],[45,48,52,55],[50,53,57,60],[43,47,50,53]],
+          melody: [
+            [[0,76,2],[3,79,1],[4,74,2],[7,71,1]],
+            [[0,72,1],[1,76,2],[4,79,1],[5,76,2]],
+            [[0,77,2],[3,76,1],[4,74,2],[6,72,2]],
+            [[0,71,2],[2,74,1],[4,77,1],[5,76,2]],
+            [[0,74,2],[3,71,1],[4,67,2],[7,71,1]],
+            [[0,72,2],[2,76,1],[4,79,2],[7,76,1]],
+            [[0,77,1],[1,81,2],[4,76,1],[5,74,2]],
+            [[0,71,2],[3,74,1],[4,77,2],[7,74,1]]
+          ]
+        }
+      };
+      const RIDE_WEATHER_MUSIC = {
+        clear: { tempo: 1, ending: '', detail: '轻盈原奏', cutoff: 5400, reverb: .19 },
+        cloudy: { tempo: .94, ending: ' · 云间', detail: '柔和变奏', cutoff: 3600, reverb: .25 },
+        rain: { tempo: .87, ending: ' · 雨滴变奏', detail: '柔和钢琴与雨声', cutoff: 3200, reverb: .28 },
+        snow: { tempo: .81, ending: ' · 雪花八音盒', detail: '八音盒与轻风', cutoff: 5700, reverb: .36 },
+        fog: { tempo: .76, ending: ' · 雾中回声', detail: '长音铺底与空灵笛音', cutoff: 2200, reverb: .44 }
+      };
+      const TONE_RECIPES = {
+        pluck:   { parts: [[1,1],[2,.28],[3,.09]], attack: .007, release: .48 },
+        marimba: { parts: [[1,1],[3.98,.17]], attack: .008, release: .55 },
+        piano:   { parts: [[1,1],[2,.31],[3,.13],[4,.04]], attack: .009, release: .86 },
+        epiano:  { parts: [[1,1],[2,.09]], attack: .012, release: .65 },
+        flute:   { parts: [[1,1],[2,.13],[3,.035]], attack: .11, release: .32, held: true },
+        bell:    { parts: [[1,1],[2.002,.19],[3.997,.055]], attack: .008, release: 1.3 },
+        pad:     { parts: [[1,.54],[1,.54],[2,.055]], attack: .48, release: 1.1, held: true },
+        bass:    { parts: [[1,1],[2,.16]], attack: .017, release: .17 }
+      };
+      const midiHz = (note) => 440 * Math.pow(2, (note - 69) / 12);
+      const audioClamp = (value, min, max) => Math.max(min, Math.min(max, value));
+      const audioRandom = (min, max) => min + Math.random() * (max - min);
+
+      function describeRideMusic(state) {
+        const score = RIDE_SCORES[state.landscape] || RIDE_SCORES.coast;
+        const weather = RIDE_WEATHER_MUSIC[state.weather] || RIDE_WEATHER_MUSIC.clear;
+        let lead = score.lead;
+        if (state.night) lead = state.landscape === 'forest' ? 'flute' : (state.landscape === 'mountain' ? 'piano' : 'epiano');
+        if (state.weather === 'rain') lead = 'piano';
+        if (state.weather === 'snow') lead = 'bell';
+        if (state.weather === 'fog') lead = 'flute';
+        const names = { pluck: '轻快拨弦', marimba: '木琴与笛音', piano: '舒缓钢琴', epiano: '柔暖电钢琴', flute: '轻柔笛音', bell: '雪花八音盒' };
+        return {
+          ...state, score, lead,
+          title: (state.night ? score.night : score.day) + weather.ending,
+          description: names[lead],
+          bpm: Math.round(audioClamp(score.bpm * weather.tempo * (state.night ? .88 : 1), 48, 96)),
+          cutoff: weather.cutoff * (state.night ? .75 : 1),
+          reverb: weather.reverb + (state.landscape === 'mountain' ? .07 : 0),
+          sparse: state.weather === 'fog' || state.weather === 'snow',
+          quiet: state.night || state.weather !== 'clear',
+          octave: state.weather === 'snow' ? 0 : (state.night ? -12 : 0)
+        };
+      }
+
+      /** 保持当前增益再渐变，避免频繁切换 / 拖动音量时出现不连续的爆音。 */
+      function glideAudio(param, value, context, seconds = .16) {
+        const now = context.currentTime;
+        if (typeof param.cancelAndHoldAtTime === 'function') {
+          param.cancelAndHoldAtTime(now);
+        } else {
+          const previous = param.value;
+          param.cancelScheduledValues(now);
+          param.setValueAtTime(previous, now);
+        }
+        param.linearRampToValueAtTime(value, now + Math.max(.01, seconds));
+      }
+
+
+      async function bakeFocusMusic(environment, style) {
+        const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        if (!Offline) throw new Error('此浏览器不支持离线配乐合成；环境声与噪声仍可使用。');
+        const effective = { ...environment };
+        if (style === 'piano') { effective.landscape = 'mountain'; effective.weather = 'cloudy'; }
+        if (style === 'lofi') { effective.landscape = 'city'; effective.weather = 'cloudy'; }
+        if (style === 'musicbox') { effective.landscape = 'forest'; effective.weather = 'snow'; }
+        const c = describeRideMusic(effective);
+        const sr = 32000;
+        const length = Math.round(64 * 30 / c.bpm * sr);
+        const period = length / sr;
+        const eighth = period / 64;
+        const ctx = new Offline(2, length * 2 + Math.ceil(sr * 3), sr);
+        const mix = ctx.createGain(); mix.gain.value = .6;
+        const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = Math.min(5000, c.cutoff); filter.Q.value = .35;
+        mix.connect(filter); filter.connect(ctx.destination);
+        const delay = ctx.createDelay(2); delay.delayTime.value = eighth * 1.5;
+        const feedback = ctx.createGain(); feedback.gain.value = .18;
+        const wet = ctx.createGain(); wet.gain.value = c.reverb * .45;
+        filter.connect(delay); delay.connect(feedback); feedback.connect(delay); delay.connect(wet); wet.connect(ctx.destination);
+        function tone(midi, at, hold, level, kind = 'piano', pan = 0) {
+          const recipe = TONE_RECIPES[kind] || TONE_RECIPES.piano;
+          const hz = midiHz(midi), end = at + hold + recipe.release;
+          const env = ctx.createGain(); const low = ctx.createBiquadFilter();
+          low.type = 'lowpass'; low.Q.value = .3;
+          low.frequency.setValueAtTime(Math.min(11000, hz * 6 + 500), at);
+          low.frequency.exponentialRampToValueAtTime(Math.max(220, hz * 2), end);
+          low.connect(env);
+          if (typeof ctx.createStereoPanner === 'function') {
+            const p = ctx.createStereoPanner(); p.pan.value = pan; env.connect(p); p.connect(mix);
+          } else env.connect(mix);
+          const attack = Math.min(recipe.attack, hold * .3);
+          env.gain.setValueAtTime(.00001, at);
+          env.gain.linearRampToValueAtTime(level, at + attack);
+          if (recipe.held) env.gain.linearRampToValueAtTime(level * .72, at + hold);
+          else env.gain.exponentialRampToValueAtTime(Math.max(.00002, level * .13), at + hold);
+          env.gain.exponentialRampToValueAtTime(.00001, end);
+          recipe.parts.forEach(([ratio, amount], i) => {
+            const osc = ctx.createOscillator(), gain = ctx.createGain();
+            osc.type = kind === 'pad' ? 'triangle' : 'sine';
+            osc.frequency.value = hz * ratio;
+            osc.detune.value = kind === 'pad' ? (i % 2 ? 3 : -3) : 0;
+            gain.gain.value = amount;
+            osc.connect(gain); gain.connect(low); osc.start(at); osc.stop(end + .01);
+          });
+        }
+        for (let pass = 0; pass < 2; pass++) {
+          for (let bar = 0; bar < 8; bar++) {
+            const chord = c.score.chords[bar];
+            for (let step = 0; step < 8; step++) {
+              const at = pass * period + (bar * 8 + step) * eighth + (effective.landscape === 'city' && step % 2 ? eighth * .08 : 0);
+              if (step === 0) {
+                chord.slice(1).forEach((note, i) => tone(note + 12, at + .012 * i, eighth * 7.1, .019, 'pad', (i - 1) * .24));
+                tone(chord[0] - 12, at, eighth * 3.2, .06, 'bass', -.1);
+              }
+              if (step % 2 === 0 && (!c.sparse || step % 4 === 0)) {
+                const index = [0, 2, 1, 3][step / 2];
+                tone(chord[index] + 12, at + .025, eighth * 1.4, .027, c.lead, step % 4 ? .25 : -.25);
+              }
+              for (const [position, midi, held] of c.score.melody[bar]) {
+                if (step !== position || (c.sparse && step % 2) || (effective.weather === 'fog' && step !== 0 && step !== 4)) continue;
+                tone(midi + c.octave, at + .008, eighth * held * .85, .064, c.lead, .1);
+              }
+              if (effective.landscape === 'city' && (step === 0 || step === 4)) tone(35, at, .10, .037, 'bass', 0);
+            }
+          }
+        }
+        const rendered = await ctx.startRendering();
+        const loop = ctx.createBuffer(2, length, sr);
+        for (let channel = 0; channel < 2; channel++) {
+          const d = loop.getChannelData(channel), full = rendered.getChannelData(channel);
+          d.set(full.subarray(length, length * 2));
+          // 在循环入口混入后续尾音；不在接缝处做全幅度静音。
+          const fade = Math.min(640, length >> 3);
+          for (let i = 0; i < fade; i++) {
+            const a = i / fade;
+            d[i] = full[length * 2 + i] * (1 - a) + d[i] * a;
+          }
+        }
+        return { buffer: loop, title: c.title, bpm: c.bpm };
+      }
+
+
+// Single-file build. Scene illustrations are travel-inspired, not maps or real-time weather.
+// Web Audio: https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/loop
+// Modal behavior: https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement/showModal
+const $ = id => document.getElementById(id);
+const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
+const wrap = (v,p) => ((v%p)+p)%p;
+const num = v => Number(v).toFixed(3);
+const validNumber = (v, fallback, min, max) => typeof v === 'number' && Number.isFinite(v) ? clamp(v,min,max) : fallback;
+const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+const smallScreen = window.matchMedia('(max-width: 520px)');
+const STORE = {prefs:'pelican-travel-minimal-prefs-v2',session:'pelican-travel-minimal-session-v2',records:'pelican-travel-minimal-records-v2',last:'pelican-travel-minimal-last-v2'};
+const memory = new Map();
+let storageOK = true;
+function readStore(key, fallback) {
+  if(!storageOK && memory.has(key)) return memory.get(key);
+  try { const s=localStorage.getItem(key); return s ? JSON.parse(s) : fallback; }
+  catch(_) {storageOK=false;return memory.has(key)?memory.get(key):fallback;}
+}
+function writeStore(key,value) {
+  memory.set(key,value);
+  try{localStorage.setItem(key,JSON.stringify(value));}
+  catch(_){storageOK=false;}
+  $('global-warning').textContent=storageOK?'':'本地保存不可用，记录仅在当前页面保留。';
+}
+function makeId(){return window.crypto && typeof window.crypto.randomUUID==='function'?window.crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`;}
+function labelOf(scene){return `${scene.name} · ${scene.mood}`;}
+function dayKey(t){const d=new Date(t);return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
+function elapsedLabel(ms){const n=Math.max(0,Math.floor(ms/1000));return n>=60?`${Math.floor(n/60)} 分${n%60?` ${n%60} 秒`:''}`:`${n} 秒`;}
+const DEFAULTS={selection:'random',focusMinutes:25,breakMinutes:5,volume:38,source:'scene',music:false,muted:false,chime:true,still:motionQuery.matches,hideTime:false,notifications:false};
+function loadPrefs(){
+  const r=readStore(STORE.prefs,{})||{},p={...DEFAULTS};
+  if(r.selection==='random'||SCENE_MAP.has(r.selection))p.selection=r.selection;
+  if(r.focusMinutes===0)p.focusMinutes=0;else p.focusMinutes=Math.round(validNumber(r.focusMinutes,25,1,180));
+  p.breakMinutes=Math.round(validNumber(r.breakMinutes,5,1,60));p.volume=validNumber(r.volume,38,0,100);
+  if(['scene','white','pink','brown'].includes(r.source))p.source=r.source;
+  for(const k of ['music','muted','chime','still','hideTime','notifications'])if(typeof r[k]==='boolean')p[k]=r[k];
+  return p;
+}
+const prefs=loadPrefs();
+function savePrefs(){writeStore(STORE.prefs,prefs);}
+function nextScene(exclude){
+  if(SCENE_MAP.has(prefs.selection))return prefs.selection;
+  const available=SCENES.filter(s=>s.id!==exclude);
+  return available[Math.floor(Math.random()*available.length)].id;
+}
+function prefixMarkup(markup,prefix){
+  return markup.replace(/id="([^"]+)"/g,(_,id)=>`id="${prefix}${id}"`).replace(/url\(#([^)]+)\)/g,(_,id)=>`url(#${prefix}${id})`).replace(/href="#([^"]+)"/g,(_,id)=>`href="#${prefix}${id}"`);
+}
+function bgMarkup(scene,prefix){return scene.art.replaceAll('__P__',prefix);}
+function thumbnail(scene,prefix){return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 680" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${bgMarkup(scene,prefix)}</svg>`;}
+
+class SceneView {
+  constructor(svg,prefix){this.svg=svg;this.prefix=prefix;this.time=0;this.air=0;this.scene=null;this.rest=false;}
+  setScene(id){
+    const s=SCENE_MAP.get(id);if(!s)return;
+    this.scene=s;const p=this.prefix;
+    this.svg.innerHTML=`<title id="${p}art-title">${labelOf(s)}，鹈鹕骑行场景</title><defs>${prefixMarkup(COMPONENTS.defs,p)}</defs><g>${bgMarkup(s,p)}</g><g class="riding-layer" transform="translate(330 201) scale(.6)"><ellipse id="${p}bike-shadow" cx="748" cy="704" rx="326" ry="13" fill="${s.ground}" opacity=".15"/>${prefixMarkup(COMPONENTS.rider,p)}</g><g class="resting-layer" transform="translate(300 180) scale(.63)">${prefixMarkup(COMPONENTS.rest,p)}</g>`;
+    this.svg.style.setProperty('--ground-shadow',s.ground);
+    this.nodes=Object.fromEntries([...this.svg.querySelectorAll('[id]')].map(n=>[n.id.slice(p.length),n]));
+    this.pan=[...this.svg.querySelectorAll('[data-pan]')];
+    this.clouds=[...this.svg.querySelectorAll('[data-float]')];
+    this.road=this.svg.querySelector('[data-road]');
+    this.rain=this.nodes.rain;
+    this.setRest(this.rest);this.paint();
+  }
+  setRest(rest){this.rest=rest;this.svg.dataset.rest=String(rest);const a=this.svg.querySelector('.riding-layer'),b=this.svg.querySelector('.resting-layer');if(a){a.setAttribute('aria-hidden',String(rest));b.setAttribute('aria-hidden',String(!rest));}}
+  attr(id,key,value){const n=this.nodes[id];if(n)n.setAttribute(key,value);}
+  translate(id,x,y=0){this.attr(id,'transform',`translate(${num(x)} ${num(y)})`);}
+  leg(side,phase,bob){
+    const pedal={x:676+Math.cos(phase)*40,y:592+Math.sin(phase)*40};
+    const hip={x:side==='near'?638:625,y:(side==='near'?433:437)+bob};
+    const ankle={x:pedal.x-3,y:pedal.y-8},dx=ankle.x-hip.x,dy=ankle.y-hip.y,d=Math.max(.001,Math.hypot(dx,dy));
+    const angle=Math.atan2(dy,dx)-Math.acos(clamp((103*103+d*d-119*119)/(206*d),-1,1));
+    const knee={x:hip.x+Math.cos(angle)*103,y:hip.y+Math.sin(angle)*103};
+    const path=`M${num(hip.x)} ${num(hip.y)}L${num(knee.x)} ${num(knee.y)}L${num(ankle.x)} ${num(ankle.y)}`;
+    this.attr(`${side}-leg-outline`,'d',path);this.attr(`${side}-leg-fill`,'d',path);
+    this.attr(`${side}-thigh`,'d',`M${hip.x} ${num(hip.y)}L${num(hip.x+(knee.x-hip.x)*.31)} ${num(hip.y+(knee.y-hip.y)*.31)}`);
+    const crank=`M676 592L${num(pedal.x)} ${num(pedal.y)}`;
+    this.attr(`${side}-crank`,'d',crank);if(side==='near')this.attr('near-crank-highlight','d',crank);
+    this.translate(`${side}-foot`,pedal.x,pedal.y);
+  }
+  paint(){
+    if(!this.scene)return;
+    const t=this.time,phase=t*Math.PI*2/1.9-.72,distance=t*Math.PI*2/1.9*1.22*103*.6;
+    const deg=wrap(distance/(103*.6)*180/Math.PI,360),bob=Math.sin(phase*2)*1.55+Math.sin(phase)*.4;
+    this.attr('rear-wheel-spin','transform',`rotate(${num(deg)})`);this.attr('front-wheel-spin','transform',`rotate(${num(deg)})`);
+    this.attr('chainring-spin','transform',`rotate(${num(phase*180/Math.PI)})`);
+    this.translate('cycle-bob',0,Math.sin(t*6)*.4);this.translate('pelican-upper',0,bob);
+    this.leg('far',phase+Math.PI,bob);this.leg('near',phase,bob);
+    this.attr('chain-links','stroke-dashoffset',num(-wrap(distance*.25,6)));
+    const flutter=Math.sin(t*5.7),f2=Math.sin(t*5.7-1.25);
+    this.attr('scarf-front','d',`M744 323C699 306 665 ${num(324+flutter*4)} 618 ${num(312+flutter*7)}L598 ${num(306+flutter*9)} 607 ${num(327+flutter*9)} 589 ${num(335+flutter*9)}C650 ${num(342+flutter*5)} 701 341 748 340Z`);
+    this.attr('scarf-back','d',`M739 334C695 339 681 ${num(355+f2*4)} 641 ${num(345+f2*7)}L650 ${num(360+f2*7)} 637 ${num(370+f2*7)}C687 ${num(374+f2*4)} 715 353 746 346Z`);
+    this.attr('scarf-stripe','d',`M607 ${num(321+flutter*8)}C650 ${num(335+flutter*4)} 697 328 739 333`);
+    const b=wrap(t,5.6),blink=b>5.32?Math.max(.075,Math.abs((b-5.46)/.14)):1;
+    this.attr('pelican-eye','transform',`translate(801 251) scale(1 ${num(blink)})`);
+    for(const el of this.pan)el.setAttribute('transform',`translate(${num(-wrap(distance*Number(el.dataset.pan),1720))} 0)`);
+    if(this.road)this.road.setAttribute('stroke-dashoffset',num(wrap(distance,185)));
+    for(const el of this.clouds)el.setAttribute('transform',`translate(${num(Math.sin(this.air*.05)*12)} ${num(Math.sin(this.air*.09)*2)})`);
+    if(this.rain)this.rain.setAttribute('patternTransform',`translate(${num(-wrap(this.air*16,163))} ${num(wrap(this.air*77,167))})`);
+  }
+  step(dt,moving){if(!prefs.still){this.air+=dt;if(moving&&!this.rest)this.time+=dt*.63;this.paint();}}
+}
+const mainView=new SceneView($('world'),'main-');
+let previewView=null;
+function responsiveScene(){ $('world').setAttribute('viewBox',smallScreen.matches?'300 0 840 680':'0 0 1440 680'); }
+if(smallScreen.addEventListener)smallScreen.addEventListener('change',responsiveScene);
+responsiveScene();
+
+
+let timer=null;
+let activeSceneId=null;
+class CalmAudio {
+  constructor(){
+    this.context=null;this.enabled=false;this.error='';this.musicError='';this.groups=new Set();
+    this.voice=null;this.musicVoice=null;this.alarm=null;this.alarmId=null;this.alarmEnd=0;
+    this.serial=0;this.musicSerial=0;this.cache=new Map();this.queue=Promise.resolve();this.musicKey='';
+  }
+  ensureGraph(){
+    if(this.context&&this.context.state!=='closed')return this.context;
+    const Context=window.AudioContext||window.webkitAudioContext;
+    if(!Context)throw new Error('当前浏览器不支持声音合成。');
+    const ctx=new Context({latencyHint:'playback'});this.context=ctx;
+    this.master=ctx.createGain();this.master.gain.value=0;
+    this.ambienceBus=ctx.createGain();this.ambienceBus.gain.value=.78;
+    this.musicBus=ctx.createGain();this.musicBus.gain.value=.4;
+    this.alertBus=ctx.createGain();this.alertBus.gain.value=.62;
+    this.ambienceBus.connect(this.master);this.musicBus.connect(this.master);this.alertBus.connect(this.master);
+    const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=28;hp.Q.value=.4;
+    const limiter=ctx.createDynamicsCompressor();limiter.threshold.value=-18;limiter.knee.value=16;limiter.ratio.value=4;limiter.attack.value=.012;limiter.release.value=.3;
+    this.master.connect(hp);hp.connect(limiter);limiter.connect(ctx.destination);
+    this.bank=this.createNoiseBank();
+    ctx.addEventListener('statechange',()=>{
+      if(timer)timer.tick();
+      if(ctx.state==='running'&&this.enabled){this.applyVolume();this.syncAlarm();}
+      this.updateUI();
+    });
+    return ctx;
+  }
+        createNoiseBank() {
+          const sr = 32000, length = sr * 12, fade = 1536;
+          const result = Object.fromEntries(['white','pink','brown'].map(key => [key, this.context.createBuffer(2,length,sr)]));
+          for (let channel = 0; channel < 2; channel++) {
+            const temp = [new Float32Array(length+fade),new Float32Array(length+fade),new Float32Array(length+fade)];
+            let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0,brown=0;
+            for (let i=0;i<length+fade;i++) {
+              const w = Math.random()*2-1;
+              b0=.99886*b0+w*.0555179; b1=.99332*b1+w*.0750759; b2=.969*b2+w*.153852;
+              b3=.8665*b3+w*.3104856; b4=.55*b4+w*.5329522; b5=-.7616*b5-w*.016898;
+              const pink = (b0+b1+b2+b3+b4+b5+b6+w*.5362)*.11; b6=w*.115926;
+              brown=(brown+.02*w)/1.02;
+              temp[0][i]=w; temp[1][i]=pink; temp[2][i]=brown*3.5;
+            }
+            ['white','pink','brown'].forEach((kind,index) => {
+              const d=result[kind].getChannelData(channel), raw=temp[index];
+              d.set(raw.subarray(0,length));
+              for(let i=0;i<fade;i++) {
+                const angle=(i/fade)*Math.PI/2;
+                d[i]=raw[length+i]*Math.cos(angle)+raw[i]*Math.sin(angle);
+              }
+              let mean=0; for(let i=0;i<length;i++) mean+=d[i]; mean/=length;
+              let energy=0; for(let i=0;i<length;i++) { d[i]-=mean; energy+=d[i]*d[i]; }
+              const scale=.18/Math.max(.001,Math.sqrt(energy/length));
+              for(let i=0;i<length;i++) d[i]=audioClamp(d[i]*scale,-.9,.9);
+            });
+          }
+          return result;
+        }
+        newGroup(bus) {
+          const gain = this.context.createGain(); gain.gain.value=0; gain.connect(bus);
+          const group = { gain, nodes:[gain], sources:[], retired:false, cleaned:false };
+          this.groups.add(group); return group;
+        }
+        addSource(group, source) {
+          group.sources.push(source);
+          source.onended=() => {
+            source.onended=null;
+            if (group.sources.every(s => s.onended === null)) this.cleanup(group);
+          };
+        }
+        cleanup(group) {
+          if (!group || group.cleaned) return;
+          group.cleaned=true; this.groups.delete(group);
+          group.sources.forEach(s => { s.onended=null; try{s.stop();}catch(_){} try{s.disconnect();}catch(_){} });
+          group.nodes.forEach(n => {try{n.disconnect();}catch(_){}});
+        }
+        retire(group, seconds=.8) {
+          if(!group || group.cleaned || group.retired) return;
+          group.retired=true;
+          const stopAt=this.context.currentTime+seconds+.02;
+          glideAudio(group.gain.gain,0,this.context,seconds);
+          group.sources.forEach(s=>{try{s.stop(stopAt);}catch(_){}});
+          if (!group.sources.length) this.cleanup(group);
+          // 极快的连续切换也不会无限累积淡出节点。
+          if(this.groups.size>9) for(const g of [...this.groups]) if(g.retired && g!==group) this.cleanup(g);
+        }
+        addBed(group, { color='pink', high=80, low=2000, level=1, rate=.1, depth=.2, pan=0 }) {
+          const ctx=this.context, source=ctx.createBufferSource(); source.buffer=this.bank[color]; source.loop=true;
+          const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=high; hp.Q.value=.4;
+          const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=low; lp.Q.value=.4;
+          const gain=ctx.createGain(); gain.gain.value=level;
+          source.connect(hp); hp.connect(lp); lp.connect(gain);
+          group.nodes.push(hp,lp,gain);
+          if(typeof ctx.createStereoPanner==='function') {const p=ctx.createStereoPanner();p.pan.value=pan;gain.connect(p);p.connect(group.gain);group.nodes.push(p);}
+          else gain.connect(group.gain);
+          if(depth>0) {
+            const lfo=ctx.createOscillator(), mod=ctx.createGain(); lfo.frequency.value=rate; mod.gain.value=level*Math.min(depth,.9);
+            lfo.connect(mod); mod.connect(gain.gain); group.nodes.push(mod); this.addSource(group,lfo); lfo.start();
+          }
+          this.addSource(group,source); source.start(0, Math.random()*source.buffer.duration);
+        }
+  applyVolume(){
+    if(!this.context||this.context.state==='closed')return;
+    const rest=timer&&(timer.mode==='break'||timer.status==='complete');
+    const v=this.enabled&&!prefs.muted?Math.pow(prefs.volume/100,1.3)*(rest ? .63 : .83):0;
+    glideAudio(this.master.gain,v,this.context,.35);
+    glideAudio(this.musicBus.gain,prefs.music ? .4 : 0,this.context,.3);
+  }
+  replaceAmbience(){
+    if(!this.enabled||!this.context)return;
+    const group=this.newGroup(this.ambienceBus);
+    if(prefs.source!=='scene'){
+      const source=this.context.createBufferSource();source.buffer=this.bank[prefs.source];source.loop=true;
+      source.connect(group.gain);this.addSource(group,source);source.start();
+    }else{
+      const kind=SCENE_MAP.get(activeSceneId)?.ambience||'lake';
+      if(kind==='lake'){
+        this.addBed(group,{color:'pink',high:130,low:1900,level:1,rate:.13,depth:.25,pan:-.2});
+        this.addBed(group,{color:'white',high:900,low:2400,level:.18,rate:.18,depth:.18,pan:.2});
+      }else if(kind==='coast'){
+        this.addBed(group,{color:'pink',high:90,low:2300,level:1.4,rate:.08,depth:.66,pan:-.18});
+        this.addBed(group,{color:'white',high:1400,low:3800,level:.3,rate:.08,depth:.6,pan:.2});
+      }else if(kind==='rain'){
+        this.addBed(group,{color:'white',high:350,low:5800,level:.93,rate:.065,depth:.07});
+        this.addBed(group,{color:'pink',high:150,low:1500,level:.35,rate:.09,depth:.12,pan:-.1});
+      }else if(kind==='stream'){
+        this.addBed(group,{color:'white',high:550,low:3000,level:.76,rate:.28,depth:.1,pan:.22});
+        this.addBed(group,{color:'pink',high:150,low:1400,level:.55,rate:.12,depth:.2,pan:-.22});
+      }else if(kind==='city')this.addBed(group,{color:'brown',high:55,low:760,level:1.08,rate:.05,depth:.14});
+      else this.addBed(group,{color:'pink',high:100,low:1300,level:1.14,rate:.06,depth:.25});
+    }
+    glideAudio(group.gain.gain,1,this.context,1.1);
+    const previous=this.voice;this.voice=group;this.retire(previous,1.1);
+  }
+  async replaceMusic(){
+    const ticket=++this.musicSerial;
+    if(!this.enabled||!this.context||!prefs.music){this.retire(this.musicVoice,.8);this.musicVoice=null;this.musicKey='';this.musicError='';this.updateUI();return;}
+    const scene=SCENE_MAP.get(activeSceneId);if(!scene)return;
+    const env={landscape:scene.audioLand,weather:scene.weather,night:scene.night};
+    const key=`${scene.id}`;
+    if(this.musicVoice&&key===this.musicKey)return;
+    this.musicError='';
+    // Fade out the old scene immediately; never keep the old music if a new render fails.
+    this.retire(this.musicVoice,1.1);this.musicVoice=null;this.musicKey='';
+    try{
+      let rendered=this.cache.get(key);
+      if(!rendered){
+        this.queue=this.queue.catch(()=>null).then(()=>ticket===this.musicSerial?bakeFocusMusic(env,'auto'):null);
+        rendered=await this.queue;
+        if(rendered){this.cache.set(key,rendered);while(this.cache.size>3)this.cache.delete(this.cache.keys().next().value);}
+      }
+      if(ticket!==this.musicSerial||!this.enabled||!prefs.music||!rendered)return;
+      const group=this.newGroup(this.musicBus),source=this.context.createBufferSource();
+      source.buffer=rendered.buffer;source.loop=true;source.connect(group.gain);this.addSource(group,source);source.start();
+      this.musicVoice=group;this.musicKey=key;glideAudio(group.gain.gain,1,this.context,1.3);
+    }catch(_){if(ticket===this.musicSerial)this.musicError='配乐暂不可用，环境声仍可播放。';}
+    this.updateUI();
+  }
+  async enable(){
+    const ticket=++this.serial;this.enabled=true;this.error='';
+    try{
+      const ctx=this.ensureGraph();
+      // resume() is initiated within the original click/keyboard gesture, before any async render.
+      if(ctx.state!=='running')await ctx.resume();
+      if(ticket!==this.serial||!this.enabled)return;
+      if(ctx.state!=='running')throw new Error('声音被浏览器暂停。');
+      this.applyVolume();if(!this.voice)this.replaceAmbience();void this.replaceMusic();this.syncAlarm();
+    }catch(e){if(ticket===this.serial)this.error=e.message||'声音暂不可用。';}
+    this.updateUI();
+  }
+  stop(){
+    ++this.serial;++this.musicSerial;this.enabled=false;this.error='';this.musicError='';this.applyVolume();this.cancelAlarm();
+    this.retire(this.voice,.24);this.retire(this.musicVoice,.24);this.voice=this.musicVoice=null;this.musicKey='';this.updateUI();
+  }
+  fromGesture(){if(!prefs.muted)void this.enable();else this.updateUI();}
+  toggle(){
+    if(this.enabled&&this.context&&this.context.state==='running'&&!this.error){prefs.muted=true;this.stop();}
+    else{prefs.muted=false;void this.enable();}
+    savePrefs();this.updateUI();
+  }
+  environmentChanged(){
+    if(this.enabled&&this.context){if(prefs.source==='scene')this.replaceAmbience();void this.replaceMusic();}
+    this.updateUI();
+  }
+  cancelAlarm(){if(this.alarm)this.cleanup(this.alarm);this.alarm=null;this.alarmId=null;}
+  syncAlarm(){
+    if(!timer||timer.status!=='running'||timer.mode==='companion'||!prefs.chime||prefs.muted||!this.enabled||prefs.volume<=0||!this.context||this.context.state!=='running'){this.cancelAlarm();return;}
+    const s=timer.session;if(!s)return;
+    if(this.alarmId===s.id&&this.alarmEnd===s.endAt)return;
+    this.cancelAlarm();const remaining=timer.remaining();if(remaining<=0)return;
+    const ctx=this.context,at=ctx.currentTime+remaining/1000,group=this.newGroup(this.alertBus);
+    group.gain.gain.value=1;
+    [1046.5,1318.5].forEach((hz,index)=>{
+      const osc=ctx.createOscillator(),env=ctx.createGain(),start=at+index*.16;
+      osc.type='sine';osc.frequency.value=hz;env.gain.setValueAtTime(.00001,ctx.currentTime);
+      env.gain.setValueAtTime(.00001,start);env.gain.linearRampToValueAtTime(.058,start+.01);env.gain.exponentialRampToValueAtTime(.00001,start+.82);
+      osc.connect(env);env.connect(group.gain);group.nodes.push(env);this.addSource(group,osc);osc.start(start);osc.stop(start+.85);
+    });
+    this.alarm=group;this.alarmId=s.id;this.alarmEnd=s.endAt;this.alarmAt=at;
+  }
+  completeAlarm(){
+    // A scheduled chime may already be sounding. Do not truncate it or ring a second time.
+    if(this.alarm&&this.context&&this.context.state==='running'&&this.context.currentTime>=this.alarmAt-.035){this.alarm=null;this.alarmId=null;}
+    else this.cancelAlarm();
+  }
+  updateUI(){
+    const ready=this.context&&this.context.state==='running';
+    const audible=this.enabled&&!prefs.muted&&ready&&!this.error&&prefs.volume>0;
+    document.body.dataset.sound=audible?'on':prefs.muted?'muted':'off';
+    $('sound-toggle').setAttribute('aria-pressed',String(audible));
+    const recover=this.enabled&&(!ready||this.error);
+    $('sound-label').textContent=recover?'恢复声音':prefs.muted?'已静音':'声音';
+    $('sound-toggle').setAttribute('aria-label',recover?'恢复声音':audible?'静音':'开启声音');
+    $('sound-toggle').title=recover?'点击重试声音（M）':audible?'静音（M）':'开启声音（M）';
+    $('audio-error').textContent=this.error||this.musicError||'';$('audio-error').hidden=!this.error&&!this.musicError;
+  }
+}
+const audio=new CalmAudio();
+
+
+function cleanSegments(value){
+  if(!Array.isArray(value))return [];
+  return value.slice(-2048).filter(x=>Array.isArray(x)&&x.length===2&&x.every(Number.isFinite)&&x[0]>0&&x[1]>=x[0]&&x[1]-x[0]<=180*60000).map(x=>[x[0],x[1]]);
+}
+function cleanRecord(r){
+  if(!r||typeof r!=='object'||typeof r.id!=='string'||!SCENE_MAP.has(r.scene)||r.mode!=='focus'||!Number.isFinite(r.endedAt)||r.endedAt<=0||!Number.isFinite(r.elapsedMs)||r.elapsedMs<1000)return null;
+  return {id:r.id.slice(0,100),scene:r.scene,mode:'focus',endedAt:r.endedAt,elapsedMs:clamp(r.elapsedMs,0,180*60000),completed:r.completed===true,segments:cleanSegments(r.segments)};
+}
+function restoreSession(raw){
+  if(!raw||typeof raw!=='object'||!['running','paused'].includes(raw.status)||!['focus','break','companion'].includes(raw.mode)||!SCENE_MAP.has(raw.scene)||typeof raw.id!=='string')return null;
+  const mode=raw.mode;
+  const totalMs=mode==='companion'?null:validNumber(raw.totalMs,25*60000,1000,180*60000);
+  const remainingMs=mode==='companion'?null:validNumber(raw.remainingMs,totalMs,0,totalMs);
+  return {id:raw.id.slice(0,100),scene:raw.scene,mode,status:'paused',totalMs,remainingMs,
+    elapsedMs:validNumber(raw.elapsedMs,mode==='companion'?0:totalMs-remainingMs,0,86400000),segments:cleanSegments(raw.segments),segmentStart:null,endAt:null,completed:false};
+}
+class FocusTimer {
+  constructor(){
+    const rows=readStore(STORE.records,[]);
+    this.records=Array.isArray(rows)?rows.slice(0,500).map(cleanRecord).filter(Boolean):[];
+    this.session=restoreSession(readStore(STORE.session,null));
+    if(this.session&&this.records.some(r=>r.id===this.session.id))this.session=null;
+    this.message=this.session?'已恢复暂停的计时。':'';
+    this.lastSnapshotAt=0;
+  }
+  get status(){return this.session?.status||'idle';}
+  get mode(){return this.session?.mode||(prefs.focusMinutes===0?'companion':'focus');}
+  hasSession(){return this.status==='running'||this.status==='paused';}
+  remaining(now=Date.now()){
+    if(!this.session)return prefs.focusMinutes*60000;
+    if(this.mode==='companion')return null;
+    return this.status==='running'?clamp(this.session.endAt-now,0,this.session.remainingMs):this.session.remainingMs;
+  }
+  capture(now=Date.now()){
+    if(!this.session)return null;
+    const s={...this.session,segments:this.session.segments.map(p=>p.slice())};
+    if(this.status==='running'){
+      const remaining=this.remaining(now);
+      const delta=this.mode==='companion'?clamp(now-s.segmentStart,0,86400000):Math.max(0,s.remainingMs-remaining);
+      if(delta>0&&s.segmentStart)s.segments.push([s.segmentStart,s.segmentStart+delta]);
+      s.elapsedMs+=delta;s.remainingMs=remaining;s.segmentStart=null;s.endAt=null;s.status='paused';
+    }
+    return s;
+  }
+  persist(){writeStore(STORE.session,this.hasSession()?this.capture():null);}
+  newSession(mode,scene=activeSceneId){
+    audio.cancelAlarm();
+    const total=mode==='companion'?null:(mode==='break'?prefs.breakMinutes:prefs.focusMinutes)*60000;
+    this.session={id:makeId(),scene,mode,status:'paused',totalMs:total,remainingMs:total,elapsedMs:0,segments:[],segmentStart:null,endAt:null,completed:false};
+    this.resume();
+  }
+  resume(){
+    const s=this.session;if(!s)return;
+    if(s.mode!=='companion'&&s.remainingMs<=0){this.finish(true);return;}
+    s.status='running';s.segmentStart=Date.now();s.endAt=s.mode==='companion'?null:s.segmentStart+s.remainingMs;
+    this.message='';this.persist();this.render();audio.fromGesture();audio.applyVolume();audio.syncAlarm();
+  }
+  pause(){
+    if(this.status!=='running')return;
+    if(this.mode!=='companion'&&this.remaining()<=0){this.finish(true);return;}
+    this.session=this.capture();this.message='';audio.cancelAlarm();this.persist();this.render();
+  }
+  commitRecord(session,completed){
+    if(session.mode!=='focus'||session.elapsedMs<1000||this.records.some(r=>r.id===session.id))return;
+    this.records.unshift({id:session.id,scene:session.scene,mode:'focus',endedAt:session.segments.at(-1)?.[1]||Date.now(),elapsedMs:Math.min(session.totalMs,session.elapsedMs),completed,segments:session.segments});
+    this.records=this.records.slice(0,500);writeStore(STORE.records,this.records);
+  }
+  finish(completed){
+    if(!this.hasSession())return;
+    const s=this.capture();
+    if(completed&&s.mode!=='companion'){s.remainingMs=0;s.elapsedMs=s.totalMs;audio.completeAlarm();}
+    else audio.cancelAlarm();
+    s.status='complete';s.completed=completed;this.session=s;this.message='';
+    this.commitRecord(s,completed);writeStore(STORE.session,null);audio.applyVolume();this.render();
+    if(completed&&prefs.notifications&&document.hidden&&typeof Notification!=='undefined'&&Notification.permission==='granted'){
+      try{const note=new Notification(s.mode==='break'?'休息结束':'本轮完成',{body:`${labelOf(SCENE_MAP.get(s.scene))} · ${s.mode==='break'?'休息':'专注'} ${Math.round(s.totalMs/60000)} 分钟`,tag:`pelican-${s.id}`,silent:true});note.onclick=()=>{window.focus();note.close();};}catch(_){}
+    }
+    if($('settings-dialog').open&&activeTab==='history')renderHistory();
+  }
+  startNext(){
+    const id=nextScene(activeSceneId);showScene(id);this.newSession(prefs.focusMinutes===0?'companion':'focus',id);renderSelection();
+  }
+  primary(){
+    this.tick();
+    if(this.status==='running'){this.pause();return;}
+    if(this.status==='paused'){this.resume();return;}
+    if(this.status==='complete'){
+      if(this.mode==='focus'&&this.session.completed)this.newSession('break',activeSceneId);
+      else this.startNext();return;
+    }
+    // Do not randomize here: the already-visible scene is the scene that will start.
+    this.newSession(prefs.focusMinutes===0?'companion':'focus',activeSceneId);
+  }
+  secondary(){
+    this.tick();
+    if(this.hasSession()){this.finish(false);return;}
+    if(this.status==='complete'&&this.mode==='focus'){
+      if(this.session.completed)this.startNext();else this.newSession('break',activeSceneId);
+    }
+  }
+  tick(){
+    if(this.status==='running'&&this.mode!=='companion'&&this.remaining()<=0)this.finish(true);
+    if(this.hasSession()&&Date.now()-this.lastSnapshotAt>15000){this.persist();this.lastSnapshotAt=Date.now();}
+    this.render();
+  }
+  render(){
+    const status=this.status,mode=this.mode,done=status==='complete',paused=status==='paused',running=status==='running';
+    const ms=this.remaining(),seconds=ms===null?0:Math.ceil(ms/1000);
+    let clock=mode==='companion'?'不计时':`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
+    let words=mode==='companion';
+    if(prefs.hideTime&&mode!=='companion'){clock=done?(this.session.completed?'本轮完成':'本轮结束'):paused?'已暂停':mode==='break'?'休息':'专注';words=true;}
+    $('clock').textContent=clock;$('clock').classList.toggle('words',words);
+    $('phase-label').textContent=done?(this.session.completed?(mode==='break'?'休息结束':'本轮完成'):'本轮结束'):paused?'已暂停':mode==='break'?'休息':mode==='companion'?'陪伴':'专注';
+    let main=running?'暂停':paused?'继续':mode==='companion'?'开始陪伴':'开始专注';
+    let secondary='',showSecondary=false;
+    if(this.hasSession()){secondary=mode==='break'?'结束休息':mode==='companion'?'结束陪伴':'结束本轮';showSecondary=true;}
+    if(done){
+      if(mode==='focus'&&this.session.completed){main=`休息 ${prefs.breakMinutes} 分钟`;secondary='开始下一轮';showSecondary=true;}
+      else{main=prefs.focusMinutes===0?'开始陪伴':'开始下一轮';if(mode==='focus'){secondary=`休息 ${prefs.breakMinutes} 分钟`;showSecondary=true;}}
+    }
+    $('main-label').textContent=main;$('session-main').setAttribute('aria-label',status==='idle'&&mode==='focus'?`开始 ${prefs.focusMinutes} 分钟专注`:main);
+    $('main-icon').setAttribute('d',running?'M8 5v14M16 5v14':(done&&mode==='focus'&&this.session.completed?'M6 8h11v8q-5 6-11 0ZM17 9h2q5 3 0 6h-2M5 21h13':'m9 5 10 7-10 7Z'));
+    $('session-secondary').hidden=!showSecondary;$('session-secondary').textContent=secondary;
+    const progress=this.session&&mode!=='companion'?clamp((1-ms/this.session.totalMs)*100,0,100):0;
+    $('progress').dataset.idle=String(status==='idle'||mode==='companion');$('progress-fill').style.width=`${progress}%`;
+    $('progress').setAttribute('aria-valuenow',String(Math.round(progress)));$('progress').setAttribute('aria-valuetext',`${Math.round(progress)}%`);
+    $('status-message').textContent=this.message;
+    mainView.setRest(mode==='break'||done);
+    const docTitle=prefs.hideTime||mode==='companion'?`${labelOf(SCENE_MAP.get(activeSceneId))} · 鹈鹕慢行`:`${clock} · ${$('phase-label').textContent} · 鹈鹕慢行`;
+    if(document.title!==docTitle)document.title=docTitle;
+    // Timed settings change the following round, never the current deadline.
+    $('preference-timing-note').textContent=this.hasSession()?'时长修改下轮生效；声音和画面偏好立即生效。':'更改后自动保存。';
+    if(previewCandidate!==null)updatePreviewAction();
+  }
+}
+function showScene(id){
+  const scene=SCENE_MAP.get(id);if(!scene)return;
+  activeSceneId=id;mainView.setScene(id);
+  $('scene-title').textContent=labelOf(scene);$('scene-region').textContent=scene.region;
+  document.documentElement.style.setProperty('--accent',scene.accent);
+  writeStore(STORE.last,id);audio.environmentChanged();
+}
+
+
+let activeTab='scenes';
+let previewCandidate=null;
+let lastFocusedBeforeSettings=null;
+function renderCards(){
+  const container=$('scene-cards');container.replaceChildren();
+  for(const scene of SCENES){
+    const button=document.createElement('button');button.type='button';button.className='scene-card';button.dataset.scene=scene.id;
+    button.setAttribute('aria-label',`预览 ${labelOf(scene)}`);button.setAttribute('aria-pressed',String(prefs.selection===scene.id));
+    const thumb=document.createElement('span');thumb.className='thumbnail';thumb.innerHTML=thumbnail(scene,`card-${scene.id}-`);
+    const copy=document.createElement('span');copy.className='card-copy';const title=document.createElement('span');
+    const strong=document.createElement('strong');strong.textContent=labelOf(scene);const small=document.createElement('small');small.textContent=scene.region;
+    title.append(strong,small);const status=document.createElement('span');status.className='card-status';status.textContent=prefs.selection===scene.id?'已设定':'预览';
+    copy.append(title,status);button.append(thumb,copy);button.addEventListener('click',()=>openPreview(scene.id));container.append(button);
+  }
+}
+function renderSelection(){
+  $('random-scene').setAttribute('aria-pressed',String(prefs.selection==='random'));
+  for(const b of $('scene-cards').querySelectorAll('[data-scene]')){
+    const selected=b.dataset.scene===prefs.selection;b.setAttribute('aria-pressed',String(selected));
+    b.querySelector('.card-status').textContent=selected?'已设定':'预览';
+  }
+  const name=prefs.selection==='random'?'随机场景':labelOf(SCENE_MAP.get(prefs.selection));
+  $('scene-setting-note').textContent=timer?.hasSession()?`下轮设置：${name}。当前场景保持不变。`:`当前设置：${name}。场景为旅行地意象，不是实际骑行路线。`;
+}
+function selectTab(key,focus=false){
+  activeTab=key;closePreview(false);
+  for(const t of document.querySelectorAll('[data-tab]')){
+    const on=t.dataset.tab===key;t.setAttribute('aria-selected',String(on));t.tabIndex=on?0:-1;
+    $(`panel-${t.dataset.tab}`).hidden=!on;
+    if(on&&focus)t.focus();
+  }
+  $('settings-scroll').scrollTop=0;
+  if(key==='history')renderHistory();else if(key==='preferences')renderPrefs();else renderSelection();
+}
+function openSettings(){
+  lastFocusedBeforeSettings=document.activeElement;
+  renderSelection();renderPrefs();selectTab(activeTab);const dialog=$('settings-dialog');
+  if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');
+  $('close-settings').focus();
+}
+function closeSettings(){const dialog=$('settings-dialog');if(typeof dialog.close==='function')dialog.close();else{dialog.removeAttribute('open');closePreview(false);lastFocusedBeforeSettings?.focus();}}
+function openPreview(id){
+  previewCandidate=id;$('scene-catalog').hidden=true;$('scene-preview').hidden=false;
+  const random=id==='random';$('preview-art').hidden=random;$('random-preview').hidden=!random;
+  if(random){previewView=null;$('preview-world').replaceChildren();$('preview-name').textContent='随机场景';$('preview-detail').textContent='仅从已上线场景选择，连续不重复；暂停与继续不换景。';}
+  else{
+    const scene=SCENE_MAP.get(id);previewView=new SceneView($('preview-world'),'preview-');previewView.setScene(id);previewView.setRest(false);
+    $('preview-name').textContent=labelOf(scene);$('preview-detail').textContent=`${scene.region} · ${scene.detail}`;
+  }
+  updatePreviewAction();$('settings-scroll').scrollTop=0;$('preview-back').focus();scheduleFrame();
+}
+function closePreview(restoreFocus=true){
+  const old=previewCandidate;previewCandidate=null;previewView=null;
+  $('scene-preview').hidden=true;$('scene-catalog').hidden=false;$('preview-world').replaceChildren();
+  if(restoreFocus&&old){const target=old==='random'?$('random-scene'):$('scene-cards').querySelector(`[data-scene="${old}"]`);target?.focus();}
+}
+function updatePreviewAction(){
+  if(previewCandidate===null)return;
+  const same=prefs.selection===previewCandidate,locked=timer?.hasSession();
+  $('apply-scene').disabled=same;
+  $('apply-scene').textContent=same?'已设定':locked?(previewCandidate==='random'?'下轮随机选择':'下轮使用'):(previewCandidate==='random'?'使用随机场景':'使用此场景');
+  $('preview-note').textContent=locked?'仅预览画面，不改变本轮场景、声音或计时。':'仅预览画面，不更改当前声音或计时。';
+}
+function applyPreview(){
+  if(previewCandidate===null||prefs.selection===previewCandidate)return;
+  const key=previewCandidate;prefs.selection=key;savePrefs();
+  if(!timer.hasSession()){
+    const id=key==='random'?nextScene(activeSceneId):key;showScene(id);timer.render();
+  }
+  renderSelection();closePreview();
+}
+function setTimeUi(selectId,inputId,value,presets){
+  const custom=!presets.includes(value);$(selectId).value=custom?'custom':String(value);$(inputId).hidden=!custom;$(inputId).value=String(value||25);
+}
+function renderPrefs(){
+  setTimeUi('focus-duration','custom-focus',prefs.focusMinutes,[0,25,50,90]);
+  setTimeUi('break-duration','custom-break',prefs.breakMinutes,[5,10,15]);
+  $('master-volume').value=String(prefs.volume);$('master-volume-value').textContent=`${Math.round(prefs.volume)}%`;
+  $('master-volume').setAttribute('aria-valuetext',`${Math.round(prefs.volume)}%`);
+  $('sound-source').value=prefs.source;$('music-on').checked=prefs.music;$('arrival-chime').checked=prefs.chime;
+  $('still-scene').checked=prefs.still;$('hide-countdown').checked=prefs.hideTime;notificationUI();
+}
+function timingChange(field,selectId,inputId,max){
+  const selected=$(selectId).value;
+  if(selected==='custom'){
+    $(inputId).hidden=false;$(inputId).value=String(prefs[field]||25);$(inputId).focus();$(inputId).select();return;
+  }
+  prefs[field]=Number(selected);$(inputId).hidden=true;savePrefs();timer.render();
+}
+function commitCustomTime(field,inputId,max){
+  const el=$(inputId),value=el.valueAsNumber;
+  if(!Number.isInteger(value)||value<1||value>max){el.setCustomValidity(`请输入 1 到 ${max} 的整数分钟。`);el.reportValidity();return;}
+  el.setCustomValidity('');prefs[field]=value;savePrefs();timer.render();
+}
+function notificationUI(){
+  const available=typeof Notification!=='undefined';const active=available&&Notification.permission==='granted'&&prefs.notifications;
+  $('notification-button').textContent=active?'关闭提醒':'开启提醒';
+  $('notification-note').textContent=active?'在后台完成时尝试通知。':available?'仅在主动开启后请求权限。':'此浏览器不支持桌面通知。';
+  $('notification-button').disabled=!available;
+}
+async function toggleNotifications(){
+  if(typeof Notification==='undefined')return;
+  if(prefs.notifications&&Notification.permission==='granted'){prefs.notifications=false;savePrefs();notificationUI();return;}
+  try{const p=await Notification.requestPermission();prefs.notifications=p==='granted';savePrefs();notificationUI();if(p!=='granted')$('notification-note').textContent='未获通知权限，仍可使用到时轻响。';}
+  catch(_){$('notification-note').textContent='当前页面无法开启通知，请使用支持通知的浏览器。';}
+}
+function renderHistory(){
+  const today=dayKey(Date.now());let todayMs=0;
+  for(const r of timer.records){
+    if(r.segments.length){
+      let available=r.elapsedMs;
+      for(const [start,end] of r.segments){
+        let cursor=start;
+        while(cursor<end&&available>0){
+          const d=new Date(cursor),midnight=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime();
+          const stop=Math.min(end,midnight),used=Math.min(stop-cursor,available);
+          if(!Number.isFinite(stop)||used<=0)break;
+          if(dayKey(cursor)===today)todayMs+=used;
+          available-=used;cursor=stop;
+        }
+      }
+    }else if(dayKey(r.endedAt)===today)todayMs+=r.elapsedMs;
+  }
+  $('today-minutes').textContent=(todayMs/60000).toFixed(1).replace(/\.0$/,'');
+  $('completed-count').textContent=String(timer.records.filter(r=>r.completed).length);
+  const list=$('history-list');list.replaceChildren();$('history-empty').hidden=timer.records.length>0;
+  timer.records.slice(0,20).forEach((r,index)=>{
+    const scene=SCENE_MAP.get(r.scene);const row=document.createElement('article');row.className='history-item';
+    const thumb=document.createElement('div');thumb.className='history-thumb';thumb.innerHTML=thumbnail(scene,`history-${index}-`);
+    const content=document.createElement('div');const title=document.createElement('strong');title.textContent=labelOf(scene);
+    const date=document.createElement('small');date.textContent=new Date(r.endedAt).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});content.append(title,date);
+    const meta=document.createElement('div');meta.className='history-meta';meta.textContent=elapsedLabel(r.elapsedMs);
+    const state=document.createElement('small');state.textContent=r.completed?'已完成':'提前结束';meta.append(state);row.append(thumb,content,meta);list.append(row);
+  });
+  $('privacy-note').textContent=storageOK?'仅保存在当前浏览器，最多 500 条，显示最近 20 条。统计计时时长，不验证实际专注程度。':'本地保存不可用，记录仅在当前页面保留。可导出记录后保存。';
+  $('privacy-note').classList.toggle('storage-warning',!storageOK);$('clear-records').disabled=!timer.records.length;
+}
+function exportRecords(){
+  const payload={app:'鹈鹕慢行',version:2,exportedAt:new Date().toISOString(),records:timer.records,preferences:prefs};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=`pelican-focus-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+
+// Start-up reads only local preferences. No account, location, network request or audio autoplay.
+timer=new FocusTimer();
+const initial=timer.session?.scene||nextScene(readStore(STORE.last,null));
+showScene(initial);renderCards();renderSelection();renderPrefs();timer.render();audio.updateUI();
+$('open-settings').addEventListener('click',openSettings);$('close-settings').addEventListener('click',closeSettings);
+$('settings-dialog').addEventListener('close',()=>{closePreview(false);lastFocusedBeforeSettings?.focus();});
+// Require both down/up outside the modal to avoid closing after a slider drag.
+let backdropDown=false;
+$('settings-dialog').addEventListener('pointerdown',e=>{const r=$('settings-dialog').getBoundingClientRect();backdropDown=e.target===$('settings-dialog')&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom);});
+$('settings-dialog').addEventListener('pointerup',e=>{const r=$('settings-dialog').getBoundingClientRect();if(backdropDown&&e.target===$('settings-dialog')&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))closeSettings();backdropDown=false;});
+$('settings-dialog').addEventListener('cancel',e=>{if(previewCandidate!==null){e.preventDefault();closePreview();}});
+for(const t of document.querySelectorAll('[data-tab]')){
+  t.addEventListener('click',()=>selectTab(t.dataset.tab));
+  t.addEventListener('keydown',e=>{
+    if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+    e.preventDefault();const keys=['scenes','preferences','history'],i=keys.indexOf(t.dataset.tab);
+    const n=e.key==='Home'?0:e.key==='End'?2:wrap(i+(e.key==='ArrowRight'?1:-1),3);selectTab(keys[n],true);
+  });
+}
+$('random-scene').addEventListener('click',()=>openPreview('random'));
+$('preview-back').addEventListener('click',()=>closePreview());$('apply-scene').addEventListener('click',applyPreview);
+$('sound-toggle').addEventListener('click',()=>audio.toggle());$('session-main').addEventListener('click',()=>{timer.primary();renderSelection();});
+$('session-secondary').addEventListener('click',()=>{timer.secondary();renderSelection();});
+$('focus-duration').addEventListener('change',()=>timingChange('focusMinutes','focus-duration','custom-focus',180));
+$('break-duration').addEventListener('change',()=>timingChange('breakMinutes','break-duration','custom-break',60));
+$('custom-focus').addEventListener('input',()=>$('custom-focus').setCustomValidity(''));
+$('custom-break').addEventListener('input',()=>$('custom-break').setCustomValidity(''));
+$('custom-focus').addEventListener('change',()=>commitCustomTime('focusMinutes','custom-focus',180));
+$('custom-break').addEventListener('change',()=>commitCustomTime('breakMinutes','custom-break',60));
+$('master-volume').addEventListener('input',()=>{prefs.volume=clamp(Number($('master-volume').value)||0,0,100);$('master-volume-value').textContent=`${Math.round(prefs.volume)}%`;$('master-volume').setAttribute('aria-valuetext',`${Math.round(prefs.volume)}%`);audio.applyVolume();audio.syncAlarm();audio.updateUI();});
+$('master-volume').addEventListener('change',savePrefs);
+$('sound-source').addEventListener('change',()=>{prefs.source=$('sound-source').value;savePrefs();audio.replaceAmbience();audio.updateUI();});
+$('music-on').addEventListener('change',()=>{prefs.music=$('music-on').checked;savePrefs();audio.applyVolume();void audio.replaceMusic();});
+$('arrival-chime').addEventListener('change',()=>{prefs.chime=$('arrival-chime').checked;savePrefs();audio.syncAlarm();});
+$('still-scene').addEventListener('change',()=>{prefs.still=$('still-scene').checked;savePrefs();mainView.paint();scheduleFrame();});
+$('hide-countdown').addEventListener('change',()=>{prefs.hideTime=$('hide-countdown').checked;savePrefs();timer.render();});
+$('notification-button').addEventListener('click',()=>void toggleNotifications());
+$('export-records').addEventListener('click',exportRecords);
+$('clear-records').addEventListener('click',()=>{const d=$('confirm-dialog');if(typeof d.showModal==='function')d.showModal();else if(window.confirm('清空当前浏览器中的历史计时记录？此操作无法撤销。')){timer.records=[];writeStore(STORE.records,[]);renderHistory();}});
+$('cancel-clear').addEventListener('click',()=>$('confirm-dialog').close());
+$('confirm-clear').addEventListener('click',()=>{timer.records=[];writeStore(STORE.records,[]);renderHistory();$('confirm-dialog').close();});
+document.addEventListener('keydown',e=>{
+  if(e.repeat||e.ctrlKey||e.metaKey||e.altKey||$('settings-dialog').open||$('confirm-dialog').open)return;
+  const el=e.target;
+  if(el instanceof Element&&el.closest('input,textarea,select,[contenteditable="true"]'))return;
+  if(e.code==='Space'){
+    if(el instanceof Element&&el.closest('button,a,summary'))return;
+    e.preventDefault();timer.primary();renderSelection();
+  }else if(e.code==='KeyM'){e.preventDefault();audio.toggle();}
+});
+let raf=0,lastFrame=null;
+function scheduleFrame(){if(!raf&&!document.hidden&&!prefs.still)raf=requestAnimationFrame(frame);}
+function frame(ts){
+  raf=0;const dt=lastFrame===null?0:Math.min(.05,(ts-lastFrame)/1000);lastFrame=ts;
+  mainView.step(dt,timer.status!=='paused');if(previewView)previewView.step(dt,true);
+  scheduleFrame();
+}
+setInterval(()=>timer.tick(),1000);
+document.addEventListener('visibilitychange',()=>{
+  timer.tick();timer.persist();lastFrame=null;
+  if(document.hidden){if(raf)cancelAnimationFrame(raf);raf=0;}
+  else{
+    scheduleFrame();renderSelection();
+    if(audio.enabled&&audio.context&&audio.context.state!=='running')audio.context.resume().then(()=>{audio.applyVolume();audio.syncAlarm();audio.updateUI();}).catch(()=>audio.updateUI());
+    else audio.syncAlarm();
+  }
+});
+// Hiding a tab keeps time/audio active. Actually leaving the document saves a paused snapshot.
+window.addEventListener('pagehide',()=>{if(timer.status==='running')timer.pause();timer.persist();audio.stop();if(raf)cancelAnimationFrame(raf);raf=0;lastFrame=null;});
+window.addEventListener('pageshow',()=>{timer.tick();scheduleFrame();});
+if(motionQuery.addEventListener)motionQuery.addEventListener('change',e=>{if(e.matches){prefs.still=true;savePrefs();$('still-scene').checked=true;if(raf)cancelAnimationFrame(raf);raf=0;}});
+window.addEventListener('beforeunload',()=>timer.persist());
+scheduleFrame();
+
+})();
+</script>
+</body>
+</html>
