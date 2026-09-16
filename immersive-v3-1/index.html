@@ -203,7 +203,7 @@ body[data-ui-theme="night"] .scene-tool{background:rgba(37,56,65,.25);border-col
   transition:background .5s ease,border-color .5s ease,box-shadow .3s ease;
 }
 
-/* The capsule's border is the time indicator. No second bar, dot, glow or label. */
+/* The border shows progress; the small readout label identifies the timer phase. */
 .focus-outline{
   position:absolute;inset:-1px;width:calc(100% + 2px);height:calc(100% + 2px);
   display:block;z-index:2;overflow:visible;pointer-events:none;
@@ -362,6 +362,47 @@ dialog::backdrop{background:rgba(29,46,38,.22);-webkit-backdrop-filter:blur(12px
 @media(max-width:520px){.next-place-card{gap:12px;padding:8px;min-height:88px}.next-place-art{width:96px;aspect-ratio:1.55}.next-place-copy strong{font-size:12px}.next-place-copy small{font-size:10px}.next-place-card>.next-place-arrow{width:14px;margin-right:2px}.preview-actions{width:100%;flex-direction:column;align-items:stretch}.preview-actions .primary{width:100%}.preview-actions .text-button{align-self:center}.next-place{margin-top:23px}}
 @media(prefers-reduced-motion:reduce){.next-place-card,.more-destinations>summary:after{transition:none!important}}
 
+/* First-use help is optional and lives in the sky, away from the character. */
+.welcome-card{
+  position:absolute;z-index:6;top:calc(var(--edge) + 64px + env(safe-area-inset-top,0px));
+  left:calc(var(--edge) + env(safe-area-inset-left,0px));width:360px;max-width:calc(100% - 34px);
+  max-height:calc(100dvh - 190px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+  overflow:auto;overscroll-behavior:contain;padding:23px;border:1px solid var(--hud-border);border-radius:22px;
+  color:var(--hud-ink);background:rgba(250,249,239,.96);box-shadow:var(--hud-shadow);
+}
+body[data-ui-theme="night"] .welcome-card,body[data-ui-theme="night"] .sound-feedback{background:rgba(33,46,51,.96)}
+.welcome-card h2{margin:0 40px 12px 0;font:400 21px/1.5 var(--serif);letter-spacing:.5px;text-wrap:balance}
+.welcome-card p,.welcome-card li{font-size:13px;line-height:1.8;margin:0}
+.welcome-card ul{padding-left:18px;margin:12px 0 18px}
+.welcome-dismiss{position:absolute;top:10px;right:10px;min-width:44px;min-height:44px;padding:8px;background:transparent;color:inherit;font-size:12px;border-radius:12px}
+.welcome-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.welcome-actions button{min-width:0;min-height:46px;padding:10px 8px;border-radius:24px;font-size:13px;letter-spacing:0}
+.welcome-companion{background:transparent;border:1px solid currentColor;color:inherit}
+.welcome-card .welcome-note{font-size:12px;margin-top:13px}
+.experience-help{margin:0 0 16px;border-bottom:1px solid var(--line);padding-bottom:12px}
+.experience-help summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:13px;color:var(--ink)}
+.experience-help summary:after{content:'⌄';margin-left:auto;padding-left:12px}
+.experience-help[open] summary:after{transform:rotate(180deg)}
+.experience-help p{font-size:13px;line-height:1.8;color:#596d5d;margin:8px 0}
+.experience-help .text-button{font-size:13px;min-height:44px;color:var(--green)}
+.focus-readout{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0 14px 0 17px;min-width:100px}
+.focus-readout .focus-time{padding:0;min-width:0}
+.focus-phase{font-size:12px;line-height:1.3;letter-spacing:.5px;white-space:nowrap;color:var(--hud-ink)}
+.focus-menu-toggle{width:44px}
+.sound-feedback{
+  position:absolute;z-index:6;top:calc(var(--edge) + 56px + env(safe-area-inset-top,0px));
+  right:calc(var(--edge) + env(safe-area-inset-right,0px));display:flex;align-items:center;gap:6px;
+  max-width:calc(100% - 34px);padding:4px 4px 4px 14px;border:1px solid var(--hud-border);border-radius:16px;
+  background:rgba(250,249,239,.96);color:var(--hud-ink);box-shadow:var(--hud-shadow);
+}
+.sound-feedback p{font-size:12px;line-height:1.7;margin:0;max-width:230px}
+.sound-feedback button{flex-shrink:0;min-width:44px;min-height:44px;padding:8px;border-radius:12px;background:transparent;color:inherit;font-size:12px}
+.sound-feedback button:hover,.welcome-dismiss:hover{background:var(--hud-glass)}
+.sound-feedback-action{text-decoration:underline;text-underline-offset:3px}
+.audio-status{margin:16px 0 0;padding:12px 14px;background:var(--pale);border-radius:12px;font-size:13px;line-height:1.8;color:var(--ink)}
+@media(max-width:520px){.welcome-card{padding:20px;top:calc(78px + env(safe-area-inset-top,0px))}.focus-readout{padding-left:13px;padding-right:10px;min-width:94px}}
+@media(max-height:500px) and (min-width:600px){.welcome-card{width:310px;padding:18px;top:calc(70px + env(safe-area-inset-top,0px));max-height:calc(100dvh - 160px)}.welcome-card h2{font-size:18px}.sound-feedback{top:calc(64px + env(safe-area-inset-top,0px))}}
+
 </style>
 </head>
 <body data-sound="off" data-ui-theme="day" data-timer-state="idle">
@@ -445,12 +486,32 @@ dialog::backdrop{background:rgba(29,46,38,.22);-webkit-backdrop-filter:blur(12px
         </button>
       </nav>
     </header>
+    <section class="welcome-card" id="welcome-card" aria-labelledby="welcome-title" hidden>
+      <button type="button" class="welcome-dismiss" id="welcome-dismiss" aria-label="收起使用提示">收起</button>
+      <h2 id="welcome-title">这一程，按你的节奏</h2>
+      <p>用计时陪你专注，也可以只听声音、看风景。</p>
+      <ul><li>暂停专注或进入休息，旅行仍会继续。</li><li>旅行完成后，照片自动收入旅行册。</li></ul>
+      <div class="welcome-actions" id="welcome-actions">
+        <button type="button" class="primary" id="welcome-focus">专注 25 分钟</button>
+        <button type="button" class="welcome-companion" id="welcome-companion">自由陪伴</button>
+      </div>
+      <p class="welcome-note" id="welcome-session-note" hidden>当前这一轮会保持原样。结束本轮后，可在设置中选择是否计时。</p>
+      <p class="welcome-note">点击开始后尝试播放声音，右上角可随时静音。自由陪伴不计时，可在设置中改回。</p>
+    </section>
+    <div class="sound-feedback" id="sound-feedback" hidden>
+      <p id="sound-feedback-text" role="status" aria-live="polite" aria-atomic="true"></p>
+      <button type="button" class="sound-feedback-action" id="sound-feedback-action" hidden>重试</button>
+      <button type="button" id="sound-feedback-dismiss" aria-label="收起声音提示">收起</button>
+    </div>
     <section class="focus-dock" id="focus-dock" aria-label="专注计时" data-clock="false">
       <div class="focus-capsule" id="focus-capsule">
         <svg class="focus-outline" id="focus-outline" viewBox="0 0 240 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" data-active="false">
           <path id="focus-outline-path" pathLength="100" d="M120 .85H212A27.15 27.15 0 0 1 239.15 28A27.15 27.15 0 0 1 212 55.15H28A27.15 27.15 0 0 1 .85 28A27.15 27.15 0 0 1 28 .85H120Z"/>
         </svg>
-        <div class="focus-time" id="clock" role="timer" aria-live="off" hidden>25:00</div>
+        <div class="focus-readout" id="focus-readout" hidden>
+          <span class="focus-phase" id="focus-phase" role="status" aria-live="polite" aria-atomic="true" hidden></span>
+          <div class="focus-time" id="clock" role="timer" aria-live="off" hidden>25:00</div>
+        </div>
         <button type="button" id="session-main" class="focus-primary" aria-label="开始 25 分钟专注" title="开始专注（空格）">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="main-icon" d="m9 5 10 7-10 7Z"/></svg>
           <span id="main-label">开始专注</span>
@@ -507,6 +568,13 @@ dialog::backdrop{background:rgba(29,46,38,.22);-webkit-backdrop-filter:blur(12px
     </section>
     <section id="panel-preferences" role="tabpanel" aria-labelledby="tab-preferences" hidden>
       <p class="setting-description" id="preference-timing-note">更改后自动保存。</p>
+      <details class="experience-help" id="experience-help">
+        <summary>怎样使用旅行鹈鹕</summary>
+        <p>专注计时记录这一轮投入的时间；自由陪伴不计时，仍可听声音、看风景和收集照片。</p>
+        <p>旅行有自己的节奏：暂停专注、休息和静音都不影响它。离开或刷新页面会保存暂停的计时；回来时最多结算离开前的一段旅行，不补算离线专注时长。</p>
+        <p>切换工作窗口会继续计时。手机锁屏或浏览器冻结可能中断声音和提醒，回来后会核对剩余时间。</p>
+        <button type="button" class="text-button" id="show-welcome">重新查看使用提示</button>
+      </details>
       <details class="more-options"><summary>旅行与收藏规则</summary><p class="setting-description rules">新用户初始开放桂林、三亚、重庆。累计完成第 1、3、6 段旅行，各开放一个新地点；默认顺序为敦煌、洱海、西湖，可在预览中设定优先解锁。开放与到访是两件事：首次在该地点完成旅行后，才收录地点纪念章。<br>首段旅行为 15 分钟，后续约 15–35 分钟，独立于专注计时。随机模式下，开始下一轮会更换已开放地点；暂停、继续、休息和刷新不重新抽景。未完成的目的地保留剩余时间及原照片结果，再次到访时接着旅行，不会因换景提前获得照片或解锁。结束时自动收录照片；重复照片同样计入解锁进度。静音、静止画面或不使用番茄钟均不影响当前旅行。<br>离线最多结算离开时正在进行的一段；暂存目的地不在后台继续计时。重新打开且无未结束计时时，可开始新的旅程，不补算离线期间的多段旅行。刷新不重新抽取结果，专注期间不弹提示、不换景。<br>现有六处旅行地，每处三种照片取景；照片为插画，非实拍。新地点不会附送到访纪念章或照片。没有连续签到、任务积分或限时领取。</p><p class="setting-description rules" id="migration-note">旧版数据可读取或导入时，保留原版已经开放的旅行地。</p></details>
       <div class="setting-row"><div><label for="focus-duration">专注时长</label><small>不使用计时也可旅行与收集。</small></div><div class="time-control"><select id="focus-duration"><option value="25">25 分钟</option><option value="50">50 分钟</option><option value="90">90 分钟</option><option value="0">不计时 · 自由旅行</option><option value="custom">自定义</option></select><input type="number" id="custom-focus" min="1" max="180" step="1" value="25" aria-label="自定义专注时长，1 到 180 分钟" hidden></div></div>
       <div class="setting-row"><label for="break-duration">休息时长</label><div class="time-control"><select id="break-duration"><option value="5">5 分钟</option><option value="10">10 分钟</option><option value="15">15 分钟</option><option value="custom">自定义</option></select><input type="number" id="custom-break" min="1" max="60" step="1" value="5" aria-label="自定义休息时长，1 到 60 分钟" hidden></div></div>
@@ -520,6 +588,7 @@ dialog::backdrop{background:rgba(29,46,38,.22);-webkit-backdrop-filter:blur(12px
         <div class="setting-row"><div><span class="field-name">桌面到时提醒</span><small id="notification-note">仅在主动开启后请求权限。</small></div><button type="button" class="text-button" id="notification-button">开启提醒</button></div>
         <p class="small-note">声音在主动点击后开启，切换工作窗口时继续播放。手机锁屏、设备休眠或浏览器冻结时，声音和到时提醒可能中断。</p>
       </details>
+      <p class="audio-status" id="audio-status" role="status" aria-live="polite" aria-atomic="true"></p>
       <p class="error-note" id="audio-error" hidden></p>
       <p class="context-note" id="recorded-audio-note">环境录音已内置，离线可用。轻配乐来自作者官网，也可使用本地音乐。</p>
       <details class="more-options" id="audio-materials"><summary>音乐文件与素材来源</summary>
@@ -816,7 +885,40 @@ const LEGACY_AT_BOOT={
   records:readStore(STORE.records,null)
 };
 const prefs=loadPrefs();
+const WELCOME_KEY='pelican-immersive-welcome-v1';
+// Read before initialization creates a journey; existing users keep their quiet entry.
+const welcomeOnBoot=!readStore(WELCOME_KEY,false)&&!LEGACY_AT_BOOT.preferences&&!LEGACY_AT_BOOT.session
+  &&!LEGACY_AT_BOOT.records?.length&&!LEGACY_AT_BOOT.journal
+  &&!readStore('travel-pelican-journal-v3',null)&&!readStore('travel-pelican-journal-v2',null);
 function savePrefs(){writeStore(STORE.prefs,prefs);}
+function setQuietText(id,value){const node=$(id);if(node.textContent!==value)node.textContent=value;}
+function renderWelcome(){
+  $('welcome-focus').textContent=`专注 ${prefs.focusMinutes||25} 分钟`;
+  $('welcome-actions').hidden=!!timer?.hasSession();
+  $('welcome-session-note').hidden=!timer?.hasSession();
+}
+function showWelcome(focus=false){
+  renderWelcome();$('welcome-card').hidden=false;$('sound-feedback').hidden=true;
+  if(focus)$('welcome-dismiss').focus({preventScroll:true});
+}
+function dismissWelcome(restoreFocus=false){
+  if($('welcome-card').hidden)return;
+  const containedFocus=$('welcome-card').contains(document.activeElement);
+  $('welcome-card').hidden=true;writeStore(WELCOME_KEY,true);
+  if(restoreFocus&&containedFocus)($('focus-dock').hidden?$('sound-toggle'):$('session-main')).focus({preventScroll:true});
+}
+async function chooseWelcomeMode(companion){
+  if(timer.hasSession()||focusActionBusy)return;
+  audio.fromGesture(); // Keep the audio unlock inside the original click.
+  prefs.focusMinutes=companion?0:(prefs.focusMinutes||25);savePrefs();renderPrefs();
+  dismissWelcome();
+  if(companion){
+    timer.session=null;timer.persist();timer.render();$('sound-toggle').focus({preventScroll:true});
+  }else{
+    await runFocusAction(timer.status==='idle'?'primary':'startNext');
+    $('session-main').focus({preventScroll:true});
+  }
+}
 function nextScene(exclude){
   const state=journey?.state;
   if(state&&sceneAvailable(state,prefs.selection))return prefs.selection;
@@ -1019,6 +1121,8 @@ class CalmAudio {
     this.bank=null;this.musicElement=null;this.musicURL=MUSIC_TRACK.url;this.musicTitle=MUSIC_TRACK.title;
     this.localMusic=false;this.importSerial=0;this.localObjectURL=null;this.musicFadeTimer=0;
     this.musicGeneration=0;this.musicPending=false;this.musicDb=null;
+    this.starting=false;this.feedbackUntil=0;this.feedbackTimer=0;
+    this.feedbackState='';this.dismissedFeedback='';
   }
   ensureGraph(){
     if(this.context&&this.context.state!=='closed')return this.context;
@@ -1229,12 +1333,17 @@ class CalmAudio {
     }).catch(e=>{
       if(generation!==this.musicGeneration||media!==this.musicElement)return;
       this.musicPending=false;
-      this.musicError=e.name==='NotAllowedError'?'浏览器暂停了配乐，请关闭再开启“轻配乐”。':'配乐未能加载，可在下方选择本地音乐；环境录音仍可使用。';
+      this.musicError=e.name==='NotAllowedError'?'浏览器暂停了配乐，请点击“重试”或重新开启轻配乐。':'配乐未能加载，可在下方选择本地音乐；环境录音仍可使用。';
       this.updateUI();
     });
   }
   async enable(){
-    const ticket=++this.serial;this.enabled=true;this.error='';
+    const retryAmbience=!!this.error;
+    const alreadyReady=this.enabled&&this.context?.state==='running'&&this.voice&&!retryAmbience
+      &&(!prefs.music||(this.musicElement&&!this.musicElement.paused&&!this.musicError));
+    const ticket=++this.serial;this.enabled=true;this.error='';this.starting=!alreadyReady;
+    if(!alreadyReady){this.feedbackUntil=performance.now()+5000;this.dismissedFeedback='';}
+    this.updateUI();
     try{
       const ctx=this.ensureGraph();
       // Both transports are unlocked in the initiating user gesture.
@@ -1242,16 +1351,18 @@ class CalmAudio {
       this.replaceMusic();
       await resume;if(ticket!==this.serial||!this.enabled)return;
       if(ctx.state!=='running')throw new Error('声音被浏览器暂停，请点击“恢复声音”。');
-      this.applyVolume();if(!this.voice&&!this.loading)void this.replaceAmbience();this.syncAlarm();
+      this.applyVolume();if((retryAmbience||!this.voice)&&!this.loading)void this.replaceAmbience();this.syncAlarm();
     }catch(e){if(ticket===this.serial)this.error=e.message||'声音暂不可用。';}
+    if(ticket===this.serial)this.starting=false;
     this.updateUI();
   }
   stop(){
-    ++this.serial;++this.ambientSerial;this.enabled=false;this.loading=false;this.error='';this.musicError='';
+    ++this.serial;++this.ambientSerial;this.enabled=false;this.starting=false;this.loading=false;this.error='';this.musicError='';
     this.applyVolume();this.cancelAlarm();this.retire(this.voice,.3);this.voice=null;this.replaceMusic();this.updateUI();
   }
   fromGesture(){if(!prefs.muted)void this.enable();else this.updateUI();}
   toggle(){
+    this.feedbackUntil=performance.now()+5000;this.dismissedFeedback='';
     if(this.enabled&&this.context&&this.context.state==='running'&&!this.error){prefs.muted=true;this.stop();}
     else{prefs.muted=false;void this.enable();}savePrefs();this.updateUI();
   }
@@ -1279,15 +1390,42 @@ class CalmAudio {
     if(this.alarm&&this.context&&this.context.state==='running'&&this.context.currentTime>=this.alarmAt-.035){this.alarm=null;this.alarmId=null;}
     else this.cancelAlarm();
   }
+  statusInfo(){
+    const ready=this.context?.state==='running';
+    const ambient=ready&&!!this.voice,music=prefs.music&&this.musicElement&&!this.musicElement.paused;
+    if(prefs.muted)return {state:'muted',text:'已静音',detail:'声音已静音，旅行和专注计时不受影响。'};
+    if(prefs.volume<=0)return {state:'zero',text:'音量为 0',detail:'总音量为 0，可在偏好中调高。',action:'volume'};
+    if(!this.enabled)return {state:'waiting',text:'点击开启声音',detail:'声音等待你主动开启。点击声音按钮或开始专注后尝试播放，并保留你的静音偏好。'};
+    if(this.starting)return {state:'loading',text:'正在准备声音…',detail:'正在准备声音，画面和计时可以继续使用。',attention:true};
+    if(!ready||this.error)return {state:'recover',text:music?'配乐播放中 · 环境声待恢复':'声音待恢复',detail:this.error||'浏览器暂停了声音，点击重试即可尝试恢复。',action:'retry',attention:true};
+    if(this.musicError)return {state:'music-error',text:ambient?'环境声播放中 · 配乐待恢复':'配乐暂不可用',detail:this.musicError,action:'retry',attention:true};
+    if(this.loading||this.musicPending)return {state:'loading',text:ambient?'环境声播放中 · 配乐准备中':music?'配乐播放中 · 环境声准备中':'正在准备声音…',detail:'声音正在准备，画面和计时不受影响。',attention:true};
+    return {state:'playing',text:ambient||music?'声音播放中':'声音已开启',detail:ambient&&music?'环境声和轻配乐正在播放。':ambient?'环境声正在播放。':music?'轻配乐正在播放。':'声音已开启，正在等待音源。'};
+  }
+  dismissFeedback(){
+    this.dismissedFeedback=this.feedbackState;clearTimeout(this.feedbackTimer);$('sound-feedback').hidden=true;
+    if($('sound-feedback').contains(document.activeElement))$('sound-toggle').focus({preventScroll:true});
+  }
   updateUI(){
     const ready=this.context&&this.context.state==='running';
     const audible=this.enabled&&!prefs.muted&&ready&&(!!this.voice||(this.musicElement&&!this.musicElement.paused))&&prefs.volume>0;
     document.body.dataset.sound=audible?'on':prefs.muted?'muted':'off';
     $('sound-toggle').setAttribute('aria-pressed',String(!!audible));
-    const recover=this.enabled&&(!ready||this.error);
-    $('sound-label').textContent=recover?'恢复声音':this.loading?'准备声音…':prefs.muted?'已静音':'声音';
-    $('sound-toggle').setAttribute('aria-label',recover?'恢复声音':this.enabled&&!prefs.muted?'静音':'开启声音');
-    $('sound-toggle').title=recover?'点击重试声音（M）':this.enabled&&!prefs.muted?'静音（M）':'开启声音（M）';
+    const info=this.statusInfo(),recover=info.state==='recover';
+    setQuietText('sound-label',info.text);
+    const action=recover?'恢复声音':this.enabled&&!prefs.muted?'静音':'开启声音';
+    $('sound-toggle').setAttribute('aria-label',`${action}，${info.text}`);
+    $('sound-toggle').title=`${action}（M） · ${info.text}`;
+    setQuietText('audio-status',info.detail);
+    if(this.feedbackState==='loading'&&info.state==='playing')this.feedbackUntil=performance.now()+4000;
+    this.feedbackState=info.state;
+    const visible=$('welcome-card').hidden&&this.dismissedFeedback!==info.state&&(info.attention||performance.now()<this.feedbackUntil);
+    $('sound-feedback').hidden=!visible;
+    if(visible)setQuietText('sound-feedback-text',info.text);
+    const feedbackAction=$('sound-feedback-action');feedbackAction.hidden=!info.action;
+    feedbackAction.textContent=info.action==='volume'?'调整音量':'重试';feedbackAction.dataset.action=info.action||'';
+    clearTimeout(this.feedbackTimer);
+    if(visible&&!info.attention)this.feedbackTimer=setTimeout(()=>this.updateUI(),Math.max(50,this.feedbackUntil-performance.now()+50));
     $('audio-error').textContent=this.error||this.musicError||'';$('audio-error').hidden=!this.error&&!this.musicError;
     $('music-source-note').textContent=this.localMusic?`${this.musicTitle} · 本地文件`:`${MUSIC_TRACK.title} · ${this.musicPending?'加载中':'需要联网'}`;
     $('reset-music').hidden=!this.localMusic;
@@ -1546,6 +1684,10 @@ class FocusTimer {
     // word and an adjacent copy of that word. Respect the hide-time preference.
     const showClock=done||(this.hasSession()&&mode!=='companion'&&!prefs.hideTime);
     const clock=$('clock');clock.hidden=!showClock;
+    $('focus-readout').hidden=!showClock&&!this.hasSession();
+    $('focus-phase').hidden=!this.hasSession();
+    const phaseName=mode==='companion'?'自由陪伴':mode==='break'?'休息':'专注';
+    setQuietText('focus-phase',paused?`${phaseName}已暂停`:mode==='companion'?phaseName:`${phaseName}中`);
     clock.textContent=done?phase:digits;clock.classList.toggle('words',done);
     clock.setAttribute('aria-label',done?phase:`${mode==='break'?'休息':'专注'}剩余 ${Math.floor(seconds/60)} 分 ${seconds%60} 秒${paused?'，已暂停':''}`);
     clock.title=done?phase:paused?'已暂停':mode==='break'?'休息计时':'专注计时';
@@ -1577,6 +1719,7 @@ class FocusTimer {
     const docTitle=this.hasSession()&&!prefs.hideTime&&mode!=='companion'?`${digits} · ${phase} · 旅行鹈鹕`:done?`${phase} · 旅行鹈鹕`:`${scene?labelOf(scene):'旅行场景'} · 旅行鹈鹕`;
     if(document.title!==docTitle)document.title=docTitle;
     $('preference-timing-note').textContent=this.hasSession()?'时长修改下轮生效；声音和画面偏好立即生效。':'偏好自动保存，旅行不依赖专注计时。';
+    if(!$('welcome-card').hidden)renderWelcome();
     if(previewCandidate!==null)updatePreviewAction();
   }
 
@@ -2400,14 +2543,27 @@ $('clear-unlock-priority').addEventListener('click',()=>void clearUnlockPriority
 let focusActionBusy=false;
 async function runFocusAction(method){
   if(focusActionBusy)return;
+  dismissWelcome();
   // Unlock audio synchronously while still inside the user's input event.
-  if((method==='primary'&&timer.status!=='running')||(method==='secondary'&&!timer.hasSession()))audio.fromGesture();
+  if((method==='primary'&&timer.status!=='running')||(method==='secondary'&&!timer.hasSession())||method==='startNext')audio.fromGesture();
   focusActionBusy=true;
   try{await timer[method]();renderSelection();renderJourney();}
   catch(_){$('status-message').textContent='当前操作未完成，请重试。';}
   finally{focusActionBusy=false;}
 }
 $('sound-toggle').addEventListener('click',()=>audio.toggle());$('session-main').addEventListener('click',()=>void runFocusAction('primary'));
+$('welcome-focus').addEventListener('click',()=>void chooseWelcomeMode(false));
+$('welcome-companion').addEventListener('click',()=>void chooseWelcomeMode(true));
+$('welcome-dismiss').addEventListener('click',()=>dismissWelcome(true));
+$('show-welcome').addEventListener('click',()=>{
+  $('settings-dialog').addEventListener('close',()=>showWelcome(true),{once:true});closeSettings();
+});
+$('sound-feedback-dismiss').addEventListener('click',()=>audio.dismissFeedback());
+$('sound-feedback-action').addEventListener('click',()=>{
+  if($('sound-feedback-action').dataset.action==='volume'){
+    openSettings();selectTab('preferences');$('master-volume').focus();
+  }else void audio.enable();
+});
 $('session-secondary').addEventListener('click',()=>{closeFocusMenu();void runFocusAction('secondary');});
 initFocusMenu();
 $('focus-duration').addEventListener('change',()=>timingChange('focusMinutes','focus-duration','custom-focus',180));
@@ -2438,6 +2594,7 @@ $('cancel-clear').addEventListener('click',()=>dismissDialog($('confirm-dialog')
 $('confirm-clear').addEventListener('click',()=>{timer.records=[];writeStore(STORE.records,[]);renderHistory();dismissDialog($('confirm-dialog'));});
 document.addEventListener('keydown',e=>{
   if(e.defaultPrevented||e.repeat||e.ctrlKey||e.metaKey||e.altKey||document.querySelector('dialog[open]'))return;
+  if(e.key==='Escape'&&!$('welcome-card').hidden){e.preventDefault();dismissWelcome(true);return;}
   const el=e.target;
   if(el instanceof Element&&el.closest('input,textarea,select,[contenteditable="true"]'))return;
   if(e.code==='Space'){
@@ -2469,6 +2626,7 @@ if(motionQuery.addEventListener)motionQuery.addEventListener('change',e=>{if(e.m
 if(motionQuery.addEventListener)motionQuery.addEventListener('change',()=>capsuleTimeOutline?.render(timer));
 window.addEventListener('beforeunload',()=>timer.persist());
 scheduleFrame();
+if(welcomeOnBoot)showWelcome();
 window.__pelicanLoading?.ready();
 window.setTimeout(()=>{loadRecordedAudio().catch(()=>{});},1200);
 

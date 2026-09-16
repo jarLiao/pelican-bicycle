@@ -1,5 +1,16 @@
 # v3.1 实现说明
 
+以下“主修正”至“检查”为最初导入 v3.1 时的实现记录，不代表后续版本未修改界面或未做浏览器测试。
+当前产品行为以 [EXPERIENCE.md](EXPERIENCE.md) 为准；最新视觉约束见 [CHARACTER_GUIDE.md](CHARACTER_GUIDE.md)。
+
+## 2026-09-16 体验收敛
+
+- 新增独立的首次提示已读键 `pelican-immersive-welcome-v1`，启动写入旅行记录前判断是否为新用户；不覆盖计时、收藏或声音偏好。
+- 首次提示为可跳过的非模态区域，可从设置重开；正在进行的计时禁止通过提示切换模式。
+- 计时状态文字仅在变化时更新；隐藏数字仍保留状态，不改变计时和旅行规则。
+- `CalmAudio.statusInfo()` 区分等待、准备、播放、静音、零音量、恢复和配乐部分失败。提示可收起，恢复操作沿用用户点击，不绕过自动播放限制。
+- 使用 Node 内置模块和独立 Chrome 配置进行回归，入口为仓库根目录的 `tests/immersive-experience.cjs`；测试注入仅发生在本地测试服务器响应中，不进入生产页面。
+
 ## 主修正
 
 - FocusTimer.startNext 传递 advance:true 和上一轮 scene；初次开始仍使用默认 ensureForFocus。
