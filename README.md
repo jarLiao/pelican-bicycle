@@ -10,7 +10,7 @@
 
 ## 本地打开
 
-直接用浏览器打开根目录的 `index.html` 可查看沿途电台版，打开 `minimal/index.html` 可查看极简专注版，打开 `immersive-v3-1/index.html` 可查看全屏沉浸 v3.1。三个版本均为独立静态网页。
+直接用浏览器打开根目录的 `index.html` 可查看沿途电台版，打开 `minimal/index.html` 可查看极简专注版，打开 `immersive-v3-1/index.html` 可查看全屏沉浸 v3.1。沉浸版的 `recorded-audio-assets.js` 需要与页面保持在同一目录；三个版本均为独立静态网页。
 
 ## GitHub Pages
 
@@ -26,4 +26,4 @@
 
 三个版本都是独立静态页面，无需服务端。发布到 GitHub Pages 后，页面和公开仓库内容可被其他人访问。
 
-发布前已通过 Node.js 完成内联 JavaScript 语法检查，并使用 Chrome 152 完成页面加载与主视觉渲染检查。浏览器会要求用户先与页面交互，之后才能播放 Web Audio 合成音乐。
+发布前已通过 Node.js 完成 JavaScript 语法检查，并使用 Chrome 152 完成加载界面、主视觉、移动端、减少动态效果和环境声资源检查。浏览器会要求用户先与页面交互，之后才能播放声音。
