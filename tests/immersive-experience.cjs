@@ -5,7 +5,7 @@ const path = require('node:path');
 const os = require('node:os');
 const http = require('node:http');
 const vm = require('node:vm');
-const { spawn } = require('node:child_process');
+const { spawn, execFile } = require('node:child_process');
 
 const root = path.resolve(__dirname, '..');
 const htmlPath = path.join(root, 'immersive-v3-1', 'index.html');
@@ -132,8 +132,8 @@ async function main() {
     const port = await waitFor(async () => {
       if (launchError) throw launchError;
       return (await fs.readFile(path.join(profile, 'DevToolsActivePort'), 'utf8')).split('\n')[0];
-    }, 'Chrome 启动');
-    process.stdout.write('独立 Chrome 已启动，正在连接本地检查页面。\n');
+    }, '独立测试浏览器启动', 45000);
+    process.stdout.write('独立测试浏览器已启动，正在连接本地检查页面。\n');
     const version = await (await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(10000) })).json();
     browser = new CDP(version.webSocketDebuggerUrl);
     const target = await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT', signal: AbortSignal.timeout(10000) })).json();
@@ -230,6 +230,30 @@ async function main() {
       await screenshot('rest-mobile');
       await click('session-main'); assert.equal(await page.evaluate(`document.getElementById('focus-phase').textContent`), '休息已暂停');
     });
+    await test('背影捧杯与前景靠背层次明确，腿脚不跟随上身呼吸', async () => {
+      const pose = await value(`const world=document.getElementById('world'),find=id=>world.querySelector('[id$="'+id+'"]');
+        const character=find('rest-character'),bench=find('rest-bench'),head=find('rest-head'),cup=find('rest-coffee-cup');
+        return {pose:character.dataset.pose,rearHead:head.querySelector('use').getAttribute('href').endsWith('pelican-back-head'),
+          frontEye:!!find('rest-eye'),cupHeld:character.contains(cup)&&!!find('rest-cup-grip'),
+          foreground:bench.dataset.layer==='foreground-backrest'&&!!(character.compareDocumentPosition(bench)&Node.DOCUMENT_POSITION_FOLLOWING),
+          anchored:!find('rest-seated-legs').closest('.rest-breathe')&&!find('rest-near-foot').closest('.rest-breathe'),
+          title:world.querySelector('title').textContent.includes('背身坐着喝咖啡')};`);
+      assert.deepEqual(pose, { pose:'back-coffee',rearHead:true,frontEye:false,cupHeld:true,foreground:true,anchored:true,title:true });
+      const shared = await value(`const host=document.createElement('div');host.innerHTML=a.momentMarkup({scene:'sanya',variant:1},'coffee-photo-');
+        return !!host.querySelector('[data-pose="back-coffee"] [id$="rest-coffee-cup"]')&&!!host.querySelector('[data-layer="foreground-backrest"]');`);
+      assert(shared, '休息照片必须复用相同的背影和咖啡杯');
+    });
+    await test('背影在三亚日落及休息照片中正常渲染', async () => {
+      await value('a.mainView.setScene("sanya");return true;');
+      await screenshot('coffee-sanya-mobile');
+      if (artifactDir) {
+        await viewport(1260, 760);
+        await value(`const host=document.createElement('div');host.id='pose-review';host.style.cssText='position:fixed;inset:0;z-index:99999;background:#e7dbc1;display:flex;align-items:center';host.innerHTML=a.momentMarkup({scene:'sanya',variant:1},'pose-review-');const svg=host.querySelector('svg');svg.style.cssText='width:100%;height:auto;display:block';document.body.append(host);return true;`);
+        await screenshot('coffee-sanya-postcard');
+        await value(`document.getElementById('pose-review').remove();return true;`);
+        await viewport(375, 812, true);
+      }
+    });
     await test('离线到期模拟最多结算当前旅行，重复刷新不重复奖励', async () => {
       const before = await value(`return Object.values(a.journey.state.stamps).reduce((n,s)=>n+s.visits,0);`);
       await page.evaluate(`window.__pelicanTest.journey.transaction(s=>{const duration=s.trip.endsAt-s.trip.startedAt;s.trip.endsAt=Date.now()-3600000;s.trip.startedAt=s.trip.endsAt-duration;s.trip.originStartedAt=s.trip.startedAt;return true;})`);
@@ -279,10 +303,11 @@ async function main() {
     });
     await test('无未处理的浏览器脚本错误', async () => assert.deepEqual(page.errors, []));
 
-    if (liveURL) await test('线上页面可进入，包含新提示且不包含测试注入', async () => {
+    if (liveURL) await test('线上页面可进入，包含背影咖啡资产且不包含测试注入', async () => {
       await page.send('Page.navigate', { url: liveURL });
       await waitFor(() => page.evaluate(`location.href.startsWith(${JSON.stringify(liveURL)}) && !!document.getElementById('welcome-card') && !document.getElementById('initial-loading')`), '线上页面加载', 20000);
       assert(await page.evaluate(`!window.__pelicanTest && !document.getElementById('welcome-card').hidden && !!document.getElementById('focus-phase')`));
+      assert(await page.evaluate(`!!document.querySelector('#world [data-pose="back-coffee"] [id$="rest-coffee-cup"]') && !!document.querySelector('#world [data-layer="foreground-backrest"]')`));
       await assertOnscreen('welcome-card'); await screenshot('published-mobile');
       assert.deepEqual(page.errors, []);
     });
@@ -291,8 +316,16 @@ async function main() {
     process.stdout.write(`完成 ${cases.length} 项检查。\n`);
   } finally {
     if (page) page.close();
-    if (browser) { try { await browser.send('Browser.close'); } catch (_) {} browser.close(); }
-    if (!chrome.killed) chrome.kill();
+    if (browser) {
+      try { await Promise.race([browser.send('Browser.close'), delay(1500)]); } catch (_) {}
+      browser.close();
+    }
+    // Windows 下只清理本脚本创建的进程树，避免测试超时后残留独立浏览器。
+    if (chrome.exitCode === null && chrome.pid) {
+      if (process.platform === 'win32') await new Promise(resolve => execFile('taskkill', ['/PID', String(chrome.pid), '/T', '/F'], { windowsHide:true, timeout:5000 }, () => resolve()));
+      else chrome.kill();
+    }
+    chrome.stderr.destroy(); chrome.unref();
     server.closeAllConnections();
     await new Promise(resolve => server.close(resolve));
   }
